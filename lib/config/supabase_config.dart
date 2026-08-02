@@ -10,6 +10,6 @@
 class SupabaseConfig {
   SupabaseConfig._();
 
-  static const String url = 'https://wzfgyrorszweotmnvduv.supabase.co/rest/v1/';
+  static const String url = 'https://wzfgyrorszweotmnvduv.supabase.co';
   static const String anonKey = 'sb_publishable_FDefCVq3Z8etBNi9g81czQ_hEEGugix';
 }
