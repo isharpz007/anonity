@@ -10,7 +10,7 @@ class PostService {
   static Future<List<AppPost>> fetchFeed({String? section, int limit = 30}) async {
     var query = _client
         .from('posts')
-        .select('*, profiles(username)')
+        .select('*, profiles!posts_author_id_fkey(username)')
         .order('created_at', ascending: false)
         .limit(limit);
 
@@ -18,7 +18,7 @@ class PostService {
         ? await query
         : await _client
             .from('posts')
-            .select('*, profiles(username)')
+            .select('*, profiles!posts_author_id_fkey(username)')
             .eq('section', section)
             .order('created_at', ascending: false)
             .limit(limit);
@@ -46,7 +46,7 @@ class PostService {
   static Future<List<AppPost>> fetchTrending({int limit = 10}) async {
     final rows = await _client
         .from('posts')
-        .select('*, profiles(username)')
+        .select('*, profiles!posts_author_id_fkey(username)')
         .order('likes_count', ascending: false)
         .limit(limit);
     return rows.map<AppPost>((r) => AppPost.fromMap(r)).toList();
@@ -55,7 +55,7 @@ class PostService {
   static Future<List<AppPost>> fetchPostsByUser(String userId) async {
     final rows = await _client
         .from('posts')
-        .select('*, profiles(username)')
+        .select('*, profiles!posts_author_id_fkey(username)')
         .eq('author_id', userId)
         .order('created_at', ascending: false);
     return rows.map<AppPost>((r) => AppPost.fromMap(r)).toList();
@@ -95,7 +95,7 @@ class PostService {
     if (query.trim().isEmpty) return [];
     final rows = await _client
         .from('posts')
-        .select('*, profiles(username)')
+        .select('*, profiles!posts_author_id_fkey(username)')
         .ilike('content', '%$query%')
         .order('created_at', ascending: false)
         .limit(30);
