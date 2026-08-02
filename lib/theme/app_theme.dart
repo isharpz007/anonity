@@ -1,0 +1,140 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+/// Central color + type system for Anonity.
+/// Matches the dark, purple-accented mockup: near-black backgrounds,
+/// violet/indigo primary accent, soft card surfaces, and three
+/// section-tag colors (Spicy / Relationship / Work).
+class AppColors {
+  AppColors._();
+
+  static const Color background = Color(0xFF0B0A10);
+  static const Color surface = Color(0xFF15131C);
+  static const Color surfaceElevated = Color(0xFF1C1926);
+  static const Color border = Color(0xFF2A2733);
+
+  static const Color primary = Color(0xFF7C5CFF);
+  static const Color primaryDim = Color(0xFF5B3FD9);
+  static const Color primaryGlow = Color(0xFF9B7FFF);
+
+  static const Color textPrimary = Color(0xFFF5F3FA);
+  static const Color textSecondary = Color(0xFFA6A1B5);
+  static const Color textMuted = Color(0xFF6E697D);
+
+  static const Color spicy = Color(0xFFE0466E);
+  static const Color relationship = Color(0xFFB84B8C);
+  static const Color work = Color(0xFF3E8FC9);
+
+  static const Color like = Color(0xFFE0466E);
+  static const Color success = Color(0xFF4CD787);
+
+  static const LinearGradient primaryGradient = LinearGradient(
+    colors: [Color(0xFF8B6BFF), Color(0xFF6A45E8)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+}
+
+class AppTheme {
+  AppTheme._();
+
+  static ThemeData get dark {
+    final base = ThemeData.dark(useMaterial3: true);
+    final textTheme = GoogleFonts.interTextTheme(base.textTheme).apply(
+      bodyColor: AppColors.textPrimary,
+      displayColor: AppColors.textPrimary,
+    );
+
+    return base.copyWith(
+      scaffoldBackgroundColor: AppColors.background,
+      primaryColor: AppColors.primary,
+      textTheme: textTheme,
+      colorScheme: base.colorScheme.copyWith(
+        primary: AppColors.primary,
+        secondary: AppColors.primaryGlow,
+        surface: AppColors.surface,
+        error: AppColors.spicy,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        centerTitle: false,
+        surfaceTintColor: Colors.transparent,
+        iconTheme: IconThemeData(color: AppColors.textPrimary),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.surface,
+        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(52),
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.textPrimary,
+          minimumSize: const Size.fromHeight(52),
+          side: const BorderSide(color: AppColors.border),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: AppColors.primaryGlow),
+      ),
+      dividerTheme: const DividerThemeData(color: AppColors.border, thickness: 1),
+      snackBarTheme: const SnackBarThemeData(
+        backgroundColor: AppColors.surfaceElevated,
+        contentTextStyle: TextStyle(color: AppColors.textPrimary),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+}
+
+/// Returns the accent color for a post/group section tag.
+Color sectionColor(String section) {
+  switch (section.toLowerCase()) {
+    case 'spicy':
+      return AppColors.spicy;
+    case 'relationship':
+      return AppColors.relationship;
+    case 'work':
+      return AppColors.work;
+    default:
+      return AppColors.primary;
+  }
+}
+
+String sectionEmoji(String section) {
+  switch (section.toLowerCase()) {
+    case 'spicy':
+      return '🌶️';
+    case 'relationship':
+      return '💗';
+    case 'work':
+      return '💼';
+    default:
+      return '';
+  }
+}
