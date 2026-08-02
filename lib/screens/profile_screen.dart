@@ -32,7 +32,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Center(
             child: Column(
               children: [
-                const AnonityMask(size: 84),
+                Image.asset(kAnonityLogoAsset, width: 84, height: 84),
                 const SizedBox(height: 12),
                 const Text('Anonymous', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
                 const Text('@anon_user', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),

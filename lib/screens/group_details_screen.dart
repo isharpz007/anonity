@@ -96,7 +96,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
         ),
         child: Row(
           children: [
-            const AnonityMask(size: 30, glow: false),
+            Image.asset(kAnonityLogoAsset, width: 30, height: 30),
             const SizedBox(width: 10),
             const Expanded(
               child: Text('Share something with the group...',
@@ -193,7 +193,7 @@ class _GroupMessageTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              const AnonityMask(size: 28, glow: false),
+              Image.asset(kAnonityLogoAsset, width: 28, height: 28),
               const SizedBox(width: 8),
               Text(message.author, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
               const SizedBox(width: 6),

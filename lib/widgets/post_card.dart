@@ -38,7 +38,7 @@ class _PostCardState extends State<PostCard> {
         children: [
           Row(
             children: [
-              const AnonityMask(size: 34, glow: false),
+              Image.asset(kAnonityLogoAsset, width: 34, height: 34),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(

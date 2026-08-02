@@ -107,7 +107,7 @@ class _TrendingRow extends StatelessWidget {
             child: Text('$index', style: const TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.w600)),
           ),
           const SizedBox(width: 8),
-          const AnonityMask(size: 34, glow: false),
+          Image.asset(kAnonityLogoAsset, width: 34, height: 34),
           const SizedBox(width: 10),
           Expanded(
             child: Column(

@@ -30,7 +30,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
         automaticallyImplyLeading: false,
         title: Row(
           children: [
-            const AnonityMask(size: 30, glow: false),
+            Image.asset(kAnonityLogoAsset, width: 30, height: 30),
             const SizedBox(width: 8),
             const Text('Anonity', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19)),
           ],
@@ -95,7 +95,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                     ),
                     child: Row(
                       children: [
-                        const AnonityMask(size: 32, glow: false),
+                        Image.asset(kAnonityLogoAsset, width: 32, height: 32),
                         const SizedBox(width: 10),
                         const Expanded(
                           child: Text("What's on your mind?",

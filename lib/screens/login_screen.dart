@@ -38,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const Text('Log in to continue to Anonity',
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
               const SizedBox(height: 28),
-              const Center(child: AnonityMask(size: 56)),
+              Center(child: Image.asset(kAnonityLogoAsset, width: 56, height: 56)),
               const SizedBox(height: 28),
               const TextField(
                 decoration: InputDecoration(

@@ -37,7 +37,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         leading: IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.of(context).pop()),
         title: Row(
           children: [
-            const AnonityMask(size: 26, glow: false),
+            Image.asset(kAnonityLogoAsset, width: 26, height: 26),
             const SizedBox(width: 8),
             Text(_anonymous ? 'Anonymous' : 'You', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
             const Icon(Icons.expand_more_rounded, size: 18, color: AppColors.textMuted),
