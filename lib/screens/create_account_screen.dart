@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
+import '../services/auth_service.dart';
 import 'login_screen.dart';
-import 'root_shell.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   const CreateAccountScreen({super.key});
@@ -11,21 +12,74 @@ class CreateAccountScreen extends StatefulWidget {
 }
 
 class _CreateAccountScreenState extends State<CreateAccountScreen> {
+  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmController = TextEditingController();
   bool _obscurePw = true;
   bool _obscureConfirm = true;
   bool _agreed = false;
+  bool _loading = false;
 
-  void _createAccount() {
-    if (!_agreed) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please agree to the Terms of Service and Privacy Policy.')),
-      );
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmController.dispose();
+    super.dispose();
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _createAccount() async {
+    final username = _usernameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final confirm = _confirmController.text;
+
+    if (username.isEmpty || email.isEmpty || password.isEmpty) {
+      _showError('Fill in username, email, and password.');
       return;
     }
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const RootShell()),
-      (route) => false,
-    );
+    if (password != confirm) {
+      _showError('Passwords do not match.');
+      return;
+    }
+    if (password.length < 6) {
+      _showError('Password must be at least 6 characters.');
+      return;
+    }
+    if (!_agreed) {
+      _showError('Please agree to the Terms of Service and Privacy Policy.');
+      return;
+    }
+
+    setState(() => _loading = true);
+    try {
+      await AuthService.signUp(email: email, password: password, username: username);
+      if (!mounted) return;
+      // If email confirmation is enabled in your Supabase project,
+      // there won't be a session yet — let the user know to check
+      // their inbox instead of assuming they're logged in.
+      final loggedIn = AuthService.isLoggedIn;
+      if (loggedIn) {
+        Navigator.of(context).popUntil((route) => route.isFirst);
+      } else {
+        _showError('Check your email to confirm your account, then log in.');
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      }
+    } on AuthException catch (e) {
+      _showError(e.message);
+    } catch (e) {
+      _showError('Something went wrong. Please try again.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -72,21 +126,25 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              const TextField(
-                decoration: InputDecoration(
+              TextField(
+                controller: _usernameController,
+                decoration: const InputDecoration(
                   prefixIcon: Icon(Icons.person_outline_rounded, color: AppColors.textMuted),
                   hintText: 'Username',
                 ),
               ),
               const SizedBox(height: 14),
-              const TextField(
-                decoration: InputDecoration(
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
                   prefixIcon: Icon(Icons.mail_outline_rounded, color: AppColors.textMuted),
                   hintText: 'Email',
                 ),
               ),
               const SizedBox(height: 14),
               TextField(
+                controller: _passwordController,
                 obscureText: _obscurePw,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppColors.textMuted),
@@ -102,6 +160,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
               ),
               const SizedBox(height: 14),
               TextField(
+                controller: _confirmController,
                 obscureText: _obscureConfirm,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppColors.textMuted),
@@ -145,7 +204,16 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 ],
               ),
               const SizedBox(height: 6),
-              ElevatedButton(onPressed: _createAccount, child: const Text('Create Account')),
+              ElevatedButton(
+                onPressed: _loading ? null : _createAccount,
+                child: _loading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Text('Create Account'),
+              ),
               const SizedBox(height: 20),
               Center(
                 child: Row(

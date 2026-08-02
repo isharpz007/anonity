@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/anonity_logo.dart';
+import '../services/group_service.dart';
 
 class GroupDetailsScreen extends StatefulWidget {
   final AppGroup group;
@@ -13,6 +14,45 @@ class GroupDetailsScreen extends StatefulWidget {
 
 class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
   int _tab = 0; // Feed / Members / About
+  late Future<List<GroupMessage>> _messagesFuture;
+  final _composerController = TextEditingController();
+  bool _sending = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _messagesFuture = GroupService.fetchMessages(widget.group.id);
+  }
+
+  @override
+  void dispose() {
+    _composerController.dispose();
+    super.dispose();
+  }
+
+  void _reloadMessages() {
+    setState(() {
+      _messagesFuture = GroupService.fetchMessages(widget.group.id);
+    });
+  }
+
+  Future<void> _sendMessage() async {
+    final content = _composerController.text.trim();
+    if (content.isEmpty || _sending) return;
+    setState(() => _sending = true);
+    try {
+      await GroupService.postMessage(groupId: widget.group.id, content: content);
+      _composerController.clear();
+      _reloadMessages();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not send: $e — are you a member of this group?')),
+      );
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,48 +65,10 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
           Text('${g.name} ${g.emoji}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
           const SizedBox(height: 4),
           Text(
-            '${g.isPrivate ? "Private Group" : "Public Group"} · ${g.memberCount}',
+            '${g.isPrivate ? "Private Group" : "Public Group"} · ${g.memberCountLabel}',
             style: const TextStyle(color: AppColors.textMuted, fontSize: 13),
           ),
           const SizedBox(height: 14),
-          Row(
-            children: [
-              SizedBox(
-                height: 34,
-                width: 96,
-                child: Stack(
-                  children: [
-                    for (int i = 0; i < 4; i++)
-                      Positioned(
-                        left: i * 20.0,
-                        child: Container(
-                          width: 30,
-                          height: 30,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.surfaceElevated,
-                            border: Border.all(color: AppColors.background, width: 2),
-                          ),
-                          child: const Icon(Icons.person, size: 15, color: AppColors.textMuted),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-              ElevatedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.person_add_alt_1_rounded, size: 16),
-                label: const Text('Invite'),
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(0, 38),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
           Container(
             decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
             padding: const EdgeInsets.all(4),
@@ -88,7 +90,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
   List<Widget> _buildFeed(AppGroup g) {
     return [
       Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(14),
@@ -98,15 +100,62 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
           children: [
             Image.asset(kAnonityLogoAsset, width: 30, height: 30),
             const SizedBox(width: 10),
-            const Expanded(
-              child: Text('Share something with the group...',
-                  style: TextStyle(color: AppColors.textMuted, fontSize: 13.5)),
+            Expanded(
+              child: TextField(
+                controller: _composerController,
+                style: const TextStyle(fontSize: 13.5),
+                decoration: const InputDecoration(
+                  hintText: 'Share something with the group...',
+                  hintStyle: TextStyle(fontSize: 13.5),
+                  filled: false,
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ),
+            IconButton(
+              icon: _sending
+                  ? const SizedBox(
+                      width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.send_rounded, color: AppColors.primary, size: 20),
+              onPressed: _sending ? null : _sendMessage,
             ),
           ],
         ),
       ),
       const SizedBox(height: 14),
-      for (final m in hustlersClubFeed) _GroupMessageTile(message: m),
+      FutureBuilder<List<GroupMessage>>(
+        future: _messagesFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Padding(
+              padding: EdgeInsets.only(top: 40),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+          if (snapshot.hasError) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 30),
+              child: Center(
+                child: Text('Could not load messages.\n${snapshot.error}',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: AppColors.textMuted)),
+              ),
+            );
+          }
+          final messages = snapshot.data ?? [];
+          if (messages.isEmpty) {
+            return const Padding(
+              padding: EdgeInsets.only(top: 30),
+              child: Center(
+                child: Text('No messages yet — be the first to share.',
+                    style: TextStyle(color: AppColors.textMuted)),
+              ),
+            );
+          }
+          return Column(children: [for (final m in messages) _GroupMessageTile(message: m)]);
+        },
+      ),
     ];
   }
 
@@ -114,7 +163,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
     return Padding(
       padding: const EdgeInsets.only(top: 30),
       child: Center(
-        child: Text('${widget.group.memberCount} in this group.',
+        child: Text('${widget.group.memberCountLabel} in this group.',
             style: const TextStyle(color: AppColors.textMuted)),
       ),
     );
@@ -135,7 +184,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
           const SizedBox(height: 8),
           Text(g.description, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13.5, height: 1.4)),
           const SizedBox(height: 12),
-          Text('${g.isPrivate ? "Private" : "Public"} · ${g.memberCount}',
+          Text('${g.isPrivate ? "Private" : "Public"} · ${g.memberCountLabel}',
               style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
         ],
       ),
@@ -209,11 +258,11 @@ class _GroupMessageTile extends StatelessWidget {
             children: [
               const Icon(Icons.thumb_up_alt_outlined, size: 15, color: AppColors.textMuted),
               const SizedBox(width: 5),
-              Text('${message.likes}', style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+              Text('${message.likesCount}', style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
               const SizedBox(width: 18),
               const Icon(Icons.mode_comment_outlined, size: 15, color: AppColors.textMuted),
               const SizedBox(width: 5),
-              Text('${message.comments}', style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+              Text('${message.commentsCount}', style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
             ],
           ),
         ],

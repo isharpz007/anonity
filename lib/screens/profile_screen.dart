@@ -3,6 +3,10 @@ import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/anonity_logo.dart';
 import '../widgets/post_card.dart';
+import '../services/auth_service.dart';
+import '../services/profile_service.dart';
+import '../services/post_service.dart';
+import '../services/group_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   final bool embedded;
@@ -12,8 +16,52 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
+class _ProfileData {
+  final AppProfile? profile;
+  final List<AppPost> posts;
+  final int groupCount;
+  const _ProfileData({required this.profile, required this.posts, required this.groupCount});
+}
+
 class _ProfileScreenState extends State<ProfileScreen> {
   int _tab = 0; // Posts / Replies / Bookmarks
+  late Future<_ProfileData> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  Future<_ProfileData> _load() async {
+    final userId = AuthService.currentUser?.id;
+    final profile = await ProfileService.fetchCurrentProfile();
+    final posts = userId == null ? <AppPost>[] : await PostService.fetchPostsByUser(userId);
+    final groups = await GroupService.fetchMyGroups();
+    return _ProfileData(profile: profile, posts: posts, groupCount: groups.length);
+  }
+
+  void _reload() => setState(() => _future = _load());
+
+  Future<void> _confirmSignOut() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surfaceElevated,
+        title: const Text('Log out?'),
+        content: const Text("You'll need to log back in to see your feed and groups."),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Log Out')),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await AuthService.signOut();
+      // AuthGate in main.dart listens for this and swaps back to SplashScreen.
+      if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,61 +70,104 @@ class _ProfileScreenState extends State<ProfileScreen> {
         automaticallyImplyLeading: false,
         title: const Text('Profile', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20)),
         actions: [
-          IconButton(icon: const Icon(Icons.settings_outlined), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.logout_rounded), onPressed: _confirmSignOut),
           const SizedBox(width: 6),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-        children: [
-          Center(
-            child: Column(
+      body: RefreshIndicator(
+        onRefresh: () async => _reload(),
+        child: FutureBuilder<_ProfileData>(
+          future: _future,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return ListView(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 80),
+                    child: Center(
+                      child: Text('Could not load profile.\n${snapshot.error}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: AppColors.textMuted)),
+                    ),
+                  ),
+                ],
+              );
+            }
+            final data = snapshot.data!;
+            final profile = data.profile;
+            final totalLikes = data.posts.fold<int>(0, (sum, p) => sum + p.likesCount);
+
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
               children: [
-                Image.asset(kAnonityLogoAsset, width: 84, height: 84),
-                const SizedBox(height: 12),
-                const Text('Anonymous', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                const Text('@anon_user', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
-                const SizedBox(height: 6),
-                const Text('Speak freely. Stay anonymous.',
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: const [
-              _StatColumn(value: '128', label: 'Posts'),
-              _StatColumn(value: '12', label: 'Groups'),
-              _StatColumn(value: '1.2K', label: 'Likes'),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Container(
-            decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
-            padding: const EdgeInsets.all(4),
-            child: Row(
-              children: [
-                _Tab(label: 'Posts', selected: _tab == 0, onTap: () => setState(() => _tab = 0)),
-                _Tab(label: 'Replies', selected: _tab == 1, onTap: () => setState(() => _tab = 1)),
-                _Tab(label: 'Bookmarks', selected: _tab == 2, onTap: () => setState(() => _tab = 2)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          if (_tab == 0)
-            for (final p in profilePosts) PostCard(post: p)
-          else
-            Padding(
-              padding: const EdgeInsets.only(top: 40),
-              child: Center(
-                child: Text(
-                  _tab == 1 ? 'No replies yet.' : 'No bookmarks yet.',
-                  style: const TextStyle(color: AppColors.textMuted),
+                Center(
+                  child: Column(
+                    children: [
+                      Image.asset(kAnonityLogoAsset, width: 84, height: 84),
+                      const SizedBox(height: 12),
+                      Text(profile?.username ?? 'Anonymous',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                      Text('@${profile?.username ?? 'anon_user'}',
+                          style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                      const SizedBox(height: 6),
+                      Text(
+                        profile?.bio.isNotEmpty == true ? profile!.bio : 'Speak freely. Stay anonymous.',
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ),
-        ],
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _StatColumn(value: '${data.posts.length}', label: 'Posts'),
+                    _StatColumn(value: '${data.groupCount}', label: 'Groups'),
+                    _StatColumn(value: '$totalLikes', label: 'Likes'),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                Container(
+                  decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.all(4),
+                  child: Row(
+                    children: [
+                      _Tab(label: 'Posts', selected: _tab == 0, onTap: () => setState(() => _tab = 0)),
+                      _Tab(label: 'Replies', selected: _tab == 1, onTap: () => setState(() => _tab = 1)),
+                      _Tab(label: 'Bookmarks', selected: _tab == 2, onTap: () => setState(() => _tab = 2)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                if (_tab == 0)
+                  if (data.posts.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 40),
+                      child: Center(
+                        child: Text("You haven't posted anything yet.",
+                            style: TextStyle(color: AppColors.textMuted)),
+                      ),
+                    )
+                  else
+                    for (final p in data.posts) PostCard(post: p)
+                else
+                  Padding(
+                    padding: const EdgeInsets.only(top: 40),
+                    child: Center(
+                      child: Text(
+                        _tab == 1 ? 'No replies yet.' : 'No bookmarks yet.',
+                        style: const TextStyle(color: AppColors.textMuted),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

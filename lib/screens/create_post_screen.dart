@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/anonity_logo.dart';
+import '../services/post_service.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
@@ -13,6 +14,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   final _controller = TextEditingController();
   String? _section;
   bool _anonymous = true;
+  bool _posting = false;
   static const int _maxLen = 500;
 
   @override
@@ -21,12 +23,28 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     super.dispose();
   }
 
-  void _post() {
-    if (_controller.text.trim().isEmpty) return;
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Posted anonymously to Anonity.')),
-    );
+  Future<void> _post() async {
+    final content = _controller.text.trim();
+    if (content.isEmpty || _posting) return;
+    setState(() => _posting = true);
+    try {
+      await PostService.createPost(
+        content: content,
+        isAnonymous: _anonymous,
+        section: _section,
+      );
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_anonymous ? 'Posted anonymously to Anonity.' : 'Posted to Anonity.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _posting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not post: $e')),
+      );
+    }
   }
 
   @override
@@ -112,12 +130,18 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   IconButton(icon: const Icon(Icons.mood_rounded, color: AppColors.textMuted), onPressed: () {}),
                   const Spacer(),
                   ElevatedButton(
-                    onPressed: _post,
+                    onPressed: _posting ? null : _post,
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(96, 44),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
                     ),
-                    child: const Text('Post'),
+                    child: _posting
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Text('Post'),
                   ),
                 ],
               ),

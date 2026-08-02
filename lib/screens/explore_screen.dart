@@ -2,16 +2,48 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/anonity_logo.dart';
+import '../services/post_service.dart';
 
-class ExploreScreen extends StatelessWidget {
+class ExploreScreen extends StatefulWidget {
   final bool embedded;
   const ExploreScreen({super.key, this.embedded = false});
 
+  @override
+  State<ExploreScreen> createState() => _ExploreScreenState();
+}
+
+class _ExploreScreenState extends State<ExploreScreen> {
   static const _sections = [
-    {'title': 'Spicy', 'sub': 'No filters.\nSay it how it is.', 'members': '12.4K members'},
-    {'title': 'Relationship', 'sub': 'Love, dating,\nand everything in between.', 'members': '8.7K members'},
-    {'title': 'Work', 'sub': 'Career, hustles,\nand money talks.', 'members': '9.1K members'},
+    {'title': 'Spicy', 'sub': 'No filters.\nSay it how it is.'},
+    {'title': 'Relationship', 'sub': 'Love, dating,\nand everything in between.'},
+    {'title': 'Work', 'sub': 'Career, hustles,\nand money talks.'},
   ];
+
+  final _searchController = TextEditingController();
+  late Future<List<AppPost>> _trendingFuture;
+  Future<List<int>>? _sectionCountsFuture;
+  Future<List<AppPost>>? _searchFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _trendingFuture = PostService.fetchTrending();
+    _sectionCountsFuture = Future.wait(
+      _sections.map((s) => PostService.fetchSectionPostCount(s['title']!)),
+    );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _runSearch(String query) {
+    setState(() {
+      _searchFuture = query.trim().isEmpty ? null : PostService.searchPosts(query);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,9 +53,23 @@ class ExploreScreen extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
         children: [
           TextField(
+            controller: _searchController,
+            onSubmitted: _runSearch,
+            onChanged: (v) {
+              if (v.trim().isEmpty) setState(() => _searchFuture = null);
+            },
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.search_rounded, color: AppColors.textMuted),
-              hintText: 'Search posts, users, or groups...',
+              hintText: 'Search posts...',
+              suffixIcon: _searchController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.close_rounded, color: AppColors.textMuted, size: 18),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() => _searchFuture = null);
+                      },
+                    )
+                  : null,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(24),
                 borderSide: const BorderSide(color: AppColors.border),
@@ -31,61 +77,121 @@ class ExploreScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 22),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Popular Sections', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-              TextButton(onPressed: () {}, child: const Text('See all')),
-            ],
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 140,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: _sections.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemBuilder: (context, i) {
-                final s = _sections[i];
-                final title = s['title']!;
-                final color = sectionColor(title);
-                return Container(
-                  width: 160,
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.22),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: color.withOpacity(0.4)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('$title ${sectionEmoji(title)}',
-                          style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 14)),
-                      const SizedBox(height: 8),
-                      Text(s['sub']!,
-                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.3)),
-                      const Spacer(),
-                      Text(s['members']!,
-                          style: const TextStyle(color: AppColors.textMuted, fontSize: 11.5)),
-                    ],
-                  ),
+          if (_searchFuture != null)
+            _SearchResults(future: _searchFuture!)
+          else ...[
+            const Text('Popular Sections', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 140,
+              child: FutureBuilder<List<int>>(
+                future: _sectionCountsFuture,
+                builder: (context, countsSnap) {
+                  final counts = countsSnap.data;
+                  return ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _sections.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    itemBuilder: (context, i) {
+                      final s = _sections[i];
+                      final title = s['title']!;
+                      final color = sectionColor(title);
+                      final count = counts != null ? counts[i] : null;
+                      return Container(
+                        width: 160,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.22),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: color.withOpacity(0.4)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('$title ${sectionEmoji(title)}',
+                                style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 14)),
+                            const SizedBox(height: 8),
+                            Text(s['sub']!,
+                                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.3)),
+                            const Spacer(),
+                            Text(
+                              count == null ? '…' : '$count posts',
+                              style: const TextStyle(color: AppColors.textMuted, fontSize: 11.5),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text('Trending Posts', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            const SizedBox(height: 6),
+            FutureBuilder<List<AppPost>>(
+              future: _trendingFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.only(top: 30),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                if (snapshot.hasError) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: Text('Could not load trending posts.\n${snapshot.error}',
+                        style: const TextStyle(color: AppColors.textMuted)),
+                  );
+                }
+                final posts = snapshot.data ?? [];
+                if (posts.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.only(top: 20),
+                    child: Text('No posts yet.', style: TextStyle(color: AppColors.textMuted)),
+                  );
+                }
+                return Column(
+                  children: [
+                    for (int i = 0; i < posts.length; i++) _TrendingRow(index: i + 1, post: posts[i]),
+                  ],
                 );
               },
             ),
-          ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Trending Posts', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-              TextButton(onPressed: () {}, child: const Text('See all')),
-            ],
-          ),
-          const SizedBox(height: 6),
-          for (int i = 0; i < mockTrendingPosts.length; i++) _TrendingRow(index: i + 1, post: mockTrendingPosts[i]),
+          ],
         ],
       ),
+    );
+  }
+}
+
+class _SearchResults extends StatelessWidget {
+  final Future<List<AppPost>> future;
+  const _SearchResults({required this.future});
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<AppPost>>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.only(top: 30),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final results = snapshot.data ?? [];
+        if (results.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.only(top: 30),
+            child: Center(child: Text('No matching posts.', style: TextStyle(color: AppColors.textMuted))),
+          );
+        }
+        return Column(
+          children: [for (int i = 0; i < results.length; i++) _TrendingRow(index: i + 1, post: results[i])],
+        );
+      },
     );
   }
 }
@@ -113,11 +219,12 @@ class _TrendingRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    SectionTag(section: post.section, padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3)),
-                  ],
-                ),
+                if (post.section.isNotEmpty)
+                  Row(
+                    children: [
+                      SectionTag(section: post.section, padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3)),
+                    ],
+                  ),
                 const SizedBox(height: 6),
                 Text(post.content, style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),
@@ -128,7 +235,7 @@ class _TrendingRow extends StatelessWidget {
                     const SizedBox(width: 12),
                     const Icon(Icons.mode_comment_outlined, size: 13, color: AppColors.textMuted),
                     const SizedBox(width: 4),
-                    Text('${post.comments}', style: const TextStyle(color: AppColors.textMuted, fontSize: 11.5)),
+                    Text('${post.commentsCount}', style: const TextStyle(color: AppColors.textMuted, fontSize: 11.5)),
                   ],
                 ),
               ],

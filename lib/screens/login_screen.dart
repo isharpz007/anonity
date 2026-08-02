@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
 import '../widgets/anonity_logo.dart';
+import '../services/auth_service.dart';
 import 'create_account_screen.dart';
-import 'root_shell.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,12 +13,48 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscure = true;
+  bool _loading = false;
 
-  void _goHome() {
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const RootShell()),
-      (route) => false,
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    if (email.isEmpty || password.isEmpty) {
+      _showError('Enter your email and password.');
+      return;
+    }
+    setState(() => _loading = true);
+    try {
+      await AuthService.signIn(emailOrUsername: email, password: password);
+      if (!mounted) return;
+      // AuthGate (in main.dart) listens for the auth state change and
+      // swaps to RootShell automatically — just pop back to it.
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } on AuthException catch (e) {
+      _showError(e.message);
+    } catch (e) {
+      _showError('Something went wrong. Please try again.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _socialComingSoon() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Social login coming soon — use email for now.')),
     );
   }
 
@@ -40,14 +77,17 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 28),
               Center(child: Image.asset(kAnonityLogoAsset, width: 56, height: 56)),
               const SizedBox(height: 28),
-              const TextField(
-                decoration: InputDecoration(
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
                   prefixIcon: Icon(Icons.mail_outline_rounded, color: AppColors.textMuted),
-                  hintText: 'Email or username',
+                  hintText: 'Email',
                 ),
               ),
               const SizedBox(height: 14),
               TextField(
+                controller: _passwordController,
                 obscureText: _obscure,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppColors.textMuted),
@@ -69,7 +109,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 8),
-              ElevatedButton(onPressed: _goHome, child: const Text('Log In')),
+              ElevatedButton(
+                onPressed: _loading ? null : _login,
+                child: _loading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Text('Log In'),
+              ),
               const SizedBox(height: 22),
               Row(
                 children: const [
@@ -86,9 +135,9 @@ class _LoginScreenState extends State<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _SocialButton(icon: Icons.g_mobiledata_rounded, onTap: _goHome),
-                  _SocialButton(icon: Icons.apple_rounded, onTap: _goHome),
-                  _SocialButton(icon: Icons.chat_bubble_rounded, onTap: _goHome),
+                  _SocialButton(icon: Icons.g_mobiledata_rounded, onTap: _socialComingSoon),
+                  _SocialButton(icon: Icons.apple_rounded, onTap: _socialComingSoon),
+                  _SocialButton(icon: Icons.chat_bubble_rounded, onTap: _socialComingSoon),
                 ],
               ),
               const SizedBox(height: 26),
@@ -138,4 +187,3 @@ class _SocialButton extends StatelessWidget {
     );
   }
 }
-

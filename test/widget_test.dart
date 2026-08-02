@@ -1,14 +1,26 @@
 // Smoke test for the Anonity app.
 //
-// Verifies the app boots to the Splash Screen and shows the wordmark
-// and both entry-point buttons (Log In / Create Account).
+// AnonityApp now talks to Supabase (auth state, session), so it needs
+// Supabase initialized before the widget tree builds — same as main().
+// We point it at dummy credentials; no real network call happens just
+// from building the Splash/Login screens.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:anonity/main.dart';
 
 void main() {
+  setUpAll(() async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    await Supabase.initialize(
+      url: 'https://example.supabase.co',
+      anonKey: 'test-anon-key',
+      debug: false,
+    );
+  });
+
   testWidgets('App boots to Splash Screen with entry actions', (WidgetTester tester) async {
     await tester.pumpWidget(const AnonityApp());
     await tester.pumpAndSettle();
