@@ -15,7 +15,7 @@ void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     await Supabase.initialize(
-      url: 'https://example.supabase.co',
+      url: 'https://YOUR_PROJECT_REF.supabase.co',
       anonKey: 'test-anon-key',
       debug: false,
     );
