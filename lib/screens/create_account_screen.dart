@@ -107,7 +107,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     Container(
                       width: 64,
                       height: 64,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: AppColors.primaryGradient,
                       ),

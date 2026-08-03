@@ -87,14 +87,14 @@ class SkeletonPostCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
-              const SkeletonBone.circle(size: 34),
-              const SizedBox(width: 10),
+              SkeletonBone.circle(size: 34),
+              SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     SkeletonBone(width: 90, height: 12),
                     SizedBox(height: 6),
                     SkeletonBone(width: 130, height: 10),
@@ -110,8 +110,8 @@ class SkeletonPostCard extends StatelessWidget {
           const SizedBox(height: 8),
           SkeletonBone(width: MediaQuery.of(context).size.width * 0.4, height: 12),
           const SizedBox(height: 14),
-          Row(
-            children: const [
+          const Row(
+            children: [
               SkeletonBone(width: 36, height: 11),
               SizedBox(width: 22),
               SkeletonBone(width: 36, height: 11),
@@ -138,14 +138,14 @@ class SkeletonGroupTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.border),
       ),
-      child: Row(
+      child: const Row(
         children: [
-          const SkeletonBone(width: 46, height: 46, borderRadius: BorderRadius.all(Radius.circular(12))),
-          const SizedBox(width: 12),
+          SkeletonBone(width: 46, height: 46, borderRadius: BorderRadius.all(Radius.circular(12))),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 SkeletonBone(width: 120, height: 13),
                 SizedBox(height: 8),
                 SkeletonBone(width: 90, height: 10),
@@ -177,8 +177,8 @@ class SkeletonGroupMessage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: const [
+          const Row(
+            children: [
               SkeletonBone.circle(size: 28),
               SizedBox(width: 8),
               SkeletonBone(width: 80, height: 11),
@@ -210,9 +210,9 @@ class SkeletonSectionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           SkeletonBone(width: 70, height: 13),
           SizedBox(height: 10),
           SkeletonBone(height: 10),
@@ -232,19 +232,19 @@ class SkeletonTrendingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(width: 20),
-          const SizedBox(width: 8),
-          const SkeletonBone.circle(size: 34),
-          const SizedBox(width: 10),
+          SizedBox(width: 20),
+          SizedBox(width: 8),
+          SkeletonBone.circle(size: 34),
+          SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 SkeletonBone(width: 60, height: 16, borderRadius: BorderRadius.all(Radius.circular(8))),
                 SizedBox(height: 8),
                 SkeletonBone(height: 12),
@@ -267,9 +267,9 @@ class SkeletonProfileHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Center(
+        const Center(
           child: Column(
-            children: const [
+            children: [
               SkeletonBone.circle(size: 84),
               SizedBox(height: 14),
               SkeletonBone(width: 120, height: 15),
@@ -285,8 +285,8 @@ class SkeletonProfileHeader extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: List.generate(
             3,
-            (_) => Column(
-              children: const [
+            (_) => const Column(
+              children: [
                 SkeletonBone(width: 30, height: 15),
                 SizedBox(height: 6),
                 SkeletonBone(width: 44, height: 10),

@@ -1,5 +1,6 @@
 /// Models mapped directly to Supabase table rows.
 /// Each has a fromMap() factory matching the columns in supabase/schema.sql.
+library;
 
 class AppProfile {
   final String id;
