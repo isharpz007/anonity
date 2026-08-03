@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
-/// Bottom navigation used on Home, Groups, Explore, and Profile.
-/// [currentIndex]: 0 Home, 1 Groups, 2 (center create), 3 Explore, 4 Profile.
+/// Bottom navigation used on Home, Explore, and Profile.
+/// [currentIndex]: 0 Home, 1 Create, 2 Explore, 3 Profile.
 class AnonityBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
-  const AnonityBottomNav({super.key, required this.currentIndex, required this.onTap});
+  const AnonityBottomNav(
+      {super.key, required this.currentIndex, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -21,11 +22,25 @@ class AnonityBottomNav extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _NavItem(icon: Icons.home_rounded, label: 'Home', index: 0, current: currentIndex, onTap: onTap),
-            _NavItem(icon: Icons.groups_rounded, label: 'Groups', index: 1, current: currentIndex, onTap: onTap),
-            _CenterButton(onTap: () => onTap(2)),
-            _NavItem(icon: Icons.search_rounded, label: 'Explore', index: 3, current: currentIndex, onTap: onTap),
-            _NavItem(icon: Icons.person_rounded, label: 'Profile', index: 4, current: currentIndex, onTap: onTap),
+            _NavItem(
+                icon: Icons.home_rounded,
+                label: 'Home',
+                index: 0,
+                current: currentIndex,
+                onTap: onTap),
+            _CenterButton(onTap: () => onTap(1)),
+            _NavItem(
+                icon: Icons.search_rounded,
+                label: 'Explore',
+                index: 2,
+                current: currentIndex,
+                onTap: onTap),
+            _NavItem(
+                icon: Icons.person_rounded,
+                label: 'Profile',
+                index: 3,
+                current: currentIndex,
+                onTap: onTap),
           ],
         ),
       ),
@@ -85,7 +100,10 @@ class _CenterButton extends StatelessWidget {
           shape: BoxShape.circle,
           gradient: AppColors.primaryGradient,
           boxShadow: [
-            BoxShadow(color: AppColors.primary.withOpacity(0.5), blurRadius: 14, spreadRadius: 1),
+            BoxShadow(
+                color: AppColors.primary.withOpacity(0.5),
+                blurRadius: 14,
+                spreadRadius: 1),
           ],
         ),
         child: const Icon(Icons.add_rounded, color: Colors.white, size: 26),

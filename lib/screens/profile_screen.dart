@@ -8,7 +8,6 @@ import '../widgets/app_feedback.dart';
 import '../services/auth_service.dart';
 import '../services/profile_service.dart';
 import '../services/post_service.dart';
-import '../services/group_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   final bool embedded;
@@ -21,8 +20,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileData {
   final AppProfile? profile;
   final List<AppPost> posts;
-  final int groupCount;
-  const _ProfileData({required this.profile, required this.posts, required this.groupCount});
+  _ProfileData({required this.profile, required this.posts});
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
@@ -38,9 +36,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<_ProfileData> _load() async {
     final userId = AuthService.currentUser?.id;
     final profile = await ProfileService.fetchCurrentProfile();
-    final posts = userId == null ? <AppPost>[] : await PostService.fetchPostsByUser(userId);
-    final groups = await GroupService.fetchMyGroups();
-    return _ProfileData(profile: profile, posts: posts, groupCount: groups.length);
+    final posts = userId == null
+        ? <AppPost>[]
+        : await PostService.fetchPostsByUser(userId);
+    return _ProfileData(profile: profile, posts: posts);
   }
 
   void _reload() => setState(() => _future = _load());
@@ -51,10 +50,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surfaceElevated,
         title: const Text('Log out?'),
-        content: const Text("You'll need to log back in to see your feed and groups."),
+        content:
+            const Text("You'll need to log back in to see your feed again."),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Log Out')),
+          TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Log Out')),
         ],
       ),
     );
@@ -70,9 +74,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Profile', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20)),
+        title: const Text('Profile',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20)),
         actions: [
-          IconButton(icon: const Icon(Icons.logout_rounded), onPressed: _confirmSignOut),
+          IconButton(
+              icon: const Icon(Icons.logout_rounded),
+              onPressed: _confirmSignOut),
           const SizedBox(width: 6),
         ],
       ),
@@ -111,7 +118,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             }
             final data = snapshot.data!;
             final profile = data.profile;
-            final totalLikes = data.posts.fold<int>(0, (sum, p) => sum + p.likesCount);
+            final totalLikes =
+                data.posts.fold<int>(0, (sum, p) => sum + p.likesCount);
 
             return ListView(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
@@ -122,13 +130,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Image.asset(kAnonityLogoAsset, width: 84, height: 84),
                       const SizedBox(height: 12),
                       Text(profile?.username ?? 'Anonymous',
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                          style: const TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.w800)),
                       Text('@${profile?.username ?? 'anon_user'}',
-                          style: const TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                          style: const TextStyle(
+                              color: AppColors.textMuted, fontSize: 13)),
                       const SizedBox(height: 6),
                       Text(
-                        profile?.bio.isNotEmpty == true ? profile!.bio : 'Speak freely. Stay anonymous.',
-                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                        profile?.bio.isNotEmpty == true
+                            ? profile!.bio
+                            : 'Speak freely. Stay anonymous.',
+                        style: const TextStyle(
+                            color: AppColors.textSecondary, fontSize: 13),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -139,19 +152,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _StatColumn(value: '${data.posts.length}', label: 'Posts'),
-                    _StatColumn(value: '${data.groupCount}', label: 'Groups'),
                     _StatColumn(value: '$totalLikes', label: 'Likes'),
                   ],
                 ),
                 const SizedBox(height: 18),
                 Container(
-                  decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(12)),
                   padding: const EdgeInsets.all(4),
                   child: Row(
                     children: [
-                      _Tab(label: 'Posts', selected: _tab == 0, onTap: () => setState(() => _tab = 0)),
-                      _Tab(label: 'Replies', selected: _tab == 1, onTap: () => setState(() => _tab = 1)),
-                      _Tab(label: 'Bookmarks', selected: _tab == 2, onTap: () => setState(() => _tab = 2)),
+                      _Tab(
+                          label: 'Posts',
+                          selected: _tab == 0,
+                          onTap: () => setState(() => _tab = 0)),
+                      _Tab(
+                          label: 'Replies',
+                          selected: _tab == 1,
+                          onTap: () => setState(() => _tab = 1)),
+                      _Tab(
+                          label: 'Bookmarks',
+                          selected: _tab == 2,
+                          onTap: () => setState(() => _tab = 2)),
                     ],
                   ),
                 ),
@@ -195,9 +218,11 @@ class _StatColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(value, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
+        Text(value,
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800)),
         const SizedBox(height: 2),
-        Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+        Text(label,
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
       ],
     );
   }
@@ -207,7 +232,8 @@ class _Tab extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
-  const _Tab({required this.label, required this.selected, required this.onTap});
+  const _Tab(
+      {required this.label, required this.selected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

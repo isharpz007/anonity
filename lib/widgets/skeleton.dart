@@ -13,12 +13,14 @@ class SkeletonPulse extends StatefulWidget {
   State<SkeletonPulse> createState() => _SkeletonPulseState();
 }
 
-class _SkeletonPulseState extends State<SkeletonPulse> with SingleTickerProviderStateMixin {
+class _SkeletonPulseState extends State<SkeletonPulse>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 900),
   )..repeat(reverse: true);
-  late final Animation<double> _opacity = Tween<double>(begin: 1, end: 0.4).animate(
+  late final Animation<double> _opacity =
+      Tween<double>(begin: 1, end: 0.4).animate(
     CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
   );
 
@@ -32,7 +34,8 @@ class _SkeletonPulseState extends State<SkeletonPulse> with SingleTickerProvider
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _opacity,
-      builder: (context, child) => Opacity(opacity: _opacity.value, child: child),
+      builder: (context, child) =>
+          Opacity(opacity: _opacity.value, child: child),
       child: widget.child,
     );
   }
@@ -64,7 +67,8 @@ class SkeletonBone extends StatelessWidget {
     return Container(
       width: width,
       height: height,
-      decoration: BoxDecoration(color: AppColors.surfaceElevated, borderRadius: borderRadius),
+      decoration: BoxDecoration(
+          color: AppColors.surfaceElevated, borderRadius: borderRadius),
     );
   }
 }
@@ -108,7 +112,8 @@ class SkeletonPostCard extends StatelessWidget {
           const SizedBox(height: 8),
           const SkeletonBone(height: 12),
           const SizedBox(height: 8),
-          SkeletonBone(width: MediaQuery.of(context).size.width * 0.4, height: 12),
+          SkeletonBone(
+              width: MediaQuery.of(context).size.width * 0.4, height: 12),
           const SizedBox(height: 14),
           const Row(
             children: [
@@ -119,77 +124,6 @@ class SkeletonPostCard extends StatelessWidget {
               SkeletonBone(width: 36, height: 11),
             ],
           ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Skeleton standing in for a group tile on the Groups screen.
-class SkeletonGroupTile extends StatelessWidget {
-  const SkeletonGroupTile({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: const Row(
-        children: [
-          SkeletonBone(width: 46, height: 46, borderRadius: BorderRadius.all(Radius.circular(12))),
-          SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SkeletonBone(width: 120, height: 13),
-                SizedBox(height: 8),
-                SkeletonBone(width: 90, height: 10),
-                SizedBox(height: 8),
-                SkeletonBone(width: 180, height: 10),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Skeleton standing in for a group chat message tile.
-class SkeletonGroupMessage extends StatelessWidget {
-  const SkeletonGroupMessage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              SkeletonBone.circle(size: 28),
-              SizedBox(width: 8),
-              SkeletonBone(width: 80, height: 11),
-              SizedBox(width: 8),
-              SkeletonBone(width: 40, height: 10),
-            ],
-          ),
-          const SizedBox(height: 10),
-          const SkeletonBone(height: 11),
-          const SizedBox(height: 6),
-          SkeletonBone(width: MediaQuery.of(context).size.width * 0.5, height: 11),
         ],
       ),
     );
@@ -245,7 +179,10 @@ class SkeletonTrendingRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SkeletonBone(width: 60, height: 16, borderRadius: BorderRadius.all(Radius.circular(8))),
+                SkeletonBone(
+                    width: 60,
+                    height: 16,
+                    borderRadius: BorderRadius.all(Radius.circular(8))),
                 SizedBox(height: 8),
                 SkeletonBone(height: 12),
                 SizedBox(height: 6),
