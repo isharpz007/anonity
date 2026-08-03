@@ -69,12 +69,16 @@ class _PostCardState extends State<PostCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      post.isAnonymous ? 'Anonymous' : post.handle.replaceFirst('@', ''),
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                      post.isAnonymous
+                          ? 'Anonymous'
+                          : post.handle.replaceFirst('@', ''),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 14),
                     ),
                     Text(
                       '${post.handle} · ${post.timeAgo}',
-                      style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                      style: const TextStyle(
+                          color: AppColors.textMuted, fontSize: 12),
                     ),
                   ],
                 ),
@@ -83,22 +87,32 @@ class _PostCardState extends State<PostCard> {
             ],
           ),
           const SizedBox(height: 12),
-          Text(post.content, style: const TextStyle(fontSize: 14.5, height: 1.4)),
+          Text(post.content,
+              style: const TextStyle(fontSize: 14.5, height: 1.4)),
           const SizedBox(height: 12),
           Row(
             children: [
-              _StatAction(icon: Icons.mode_comment_outlined, count: post.commentsCount, onTap: () {}),
-              const SizedBox(width: 22),
-              _StatAction(icon: Icons.repeat_rounded, count: post.repostsCount, onTap: () {}),
+              _StatAction(
+                  icon: Icons.mode_comment_outlined,
+                  count: post.commentsCount,
+                  onTap: () {}),
               const SizedBox(width: 22),
               _StatAction(
-                icon: liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                  icon: Icons.repeat_rounded,
+                  count: post.repostsCount,
+                  onTap: () {}),
+              const SizedBox(width: 22),
+              _StatAction(
+                icon: liked
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
                 count: likeCount,
                 color: liked ? AppColors.like : null,
                 onTap: _toggleLike,
               ),
               const Spacer(),
-              const Icon(Icons.ios_share_rounded, size: 17, color: AppColors.textMuted),
+              const Icon(Icons.ios_share_rounded,
+                  size: 17, color: AppColors.textMuted),
             ],
           ),
         ],
@@ -112,7 +126,11 @@ class _StatAction extends StatelessWidget {
   final int count;
   final Color? color;
   final VoidCallback onTap;
-  const _StatAction({required this.icon, required this.count, required this.onTap, this.color});
+  const _StatAction(
+      {required this.icon,
+      required this.count,
+      required this.onTap,
+      this.color});
 
   @override
   Widget build(BuildContext context) {
