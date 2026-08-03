@@ -31,6 +31,24 @@
 
   <title>anonity</title>
   <link rel="manifest" href="manifest.json">
+
+
+  <!-- This white strip is actually the browser's own chrome peeking through — not a Flutter layout bug. Since this is a web app (deployed via Vercel, opened in Safari), Flutter can't paint that top sliver directly; it's controlled by meta tags in web/index.html and web/manifest.json. The default Flutter web template leaves those as plain white, which clashes with your dark theme. -->
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B0A10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<style>
+  html, body {
+    background-color: #0B0A10;
+    margin: 0;
+    height: 100%;
+  }
+</style>
+
+  <!-- This white strip is actually the browser's own chrome peeking through — not a Flutter layout bug. Since this is a web app (deployed via Vercel, opened in Safari), Flutter can't paint that top sliver directly; it's controlled by meta tags in web/index.html and web/manifest.json. The default Flutter web template leaves those as plain white, which clashes with your dark theme. -->
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
