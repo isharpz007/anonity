@@ -10,6 +10,7 @@
 class SupabaseConfig {
   SupabaseConfig._();
 
-  static const String url = 'https://YOUR_PROJECT_REF.supabase.co';
-  static const String anonKey = 'YOUR_ANON_PUBLIC_KEY';
+  static const String url = 'https://wzfgyrorszweotmnvduv.supabase.co';
+  static const String anonKey =
+      'sb_publishable_-J1ECyHgYQJgtwwbG8Q2rA_CWEMq_W8';
 }
