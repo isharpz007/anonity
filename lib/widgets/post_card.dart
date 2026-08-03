@@ -3,6 +3,7 @@ import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/post_service.dart';
+import '../widgets/app_feedback.dart';
 import 'anonity_logo.dart';
 
 class PostCard extends StatefulWidget {
@@ -21,9 +22,7 @@ class _PostCardState extends State<PostCard> {
   Future<void> _toggleLike() async {
     if (_busy) return;
     if (!AuthService.isLoggedIn) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Log in to like posts.')),
-      );
+      showToast(context, 'Log in to like posts.');
       return;
     }
     final wasLiked = liked;
@@ -41,9 +40,7 @@ class _PostCardState extends State<PostCard> {
         liked = wasLiked;
         likeCount += wasLiked ? 1 : -1;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not update like. Try again.')),
-      );
+      showToast(context, 'Could not update like. Try again.');
     } finally {
       if (mounted) setState(() => _busy = false);
     }

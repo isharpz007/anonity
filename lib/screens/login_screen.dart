@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
 import '../widgets/anonity_logo.dart';
+import '../widgets/app_feedback.dart';
 import '../services/auth_service.dart';
 import 'create_account_screen.dart';
 
@@ -17,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _obscure = true;
   bool _loading = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -28,8 +30,9 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
+    setState(() => _error = null);
     if (email.isEmpty || password.isEmpty) {
-      _showError('Enter your email and password.');
+      setState(() => _error = 'Enter your email and password.');
       return;
     }
     setState(() => _loading = true);
@@ -40,22 +43,16 @@ class _LoginScreenState extends State<LoginScreen> {
       // swaps to RootShell automatically — just pop back to it.
       Navigator.of(context).popUntil((route) => route.isFirst);
     } on AuthException catch (e) {
-      _showError(e.message);
+      setState(() => _error = e.message);
     } catch (e) {
-      _showError('Something went wrong. Please try again.');
+      setState(() => _error = friendlyError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-  }
-
   void _socialComingSoon() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Social login coming soon — use email for now.')),
-    );
+    showToast(context, 'Social login coming soon — use email for now.');
   }
 
   @override
@@ -108,6 +105,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: const Text('Forgot password?'),
                 ),
               ),
+              const SizedBox(height: 8),
+              if (_error != null) InlineError(message: _error!),
               const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: _loading ? null : _login,

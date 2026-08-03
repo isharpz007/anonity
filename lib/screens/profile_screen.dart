@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../widgets/anonity_logo.dart';
 import '../widgets/post_card.dart';
 import '../widgets/skeleton.dart';
+import '../widgets/app_feedback.dart';
 import '../services/auth_service.dart';
 import '../services/profile_service.dart';
 import '../services/post_service.dart';
@@ -99,11 +100,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               return ListView(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(top: 80),
-                    child: Center(
-                      child: Text('Could not load profile.\n${snapshot.error}',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: AppColors.textMuted)),
+                    padding: const EdgeInsets.only(top: 40),
+                    child: InlineErrorState(
+                      message: friendlyError(snapshot.error!),
+                      onRetry: _reload,
                     ),
                   ),
                 ],

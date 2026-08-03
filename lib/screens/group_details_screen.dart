@@ -3,6 +3,7 @@ import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/anonity_logo.dart';
 import '../widgets/skeleton.dart';
+import '../widgets/app_feedback.dart';
 import '../services/group_service.dart';
 
 class GroupDetailsScreen extends StatefulWidget {
@@ -18,6 +19,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
   late Future<List<GroupMessage>> _messagesFuture;
   final _composerController = TextEditingController();
   bool _sending = false;
+  String? _sendError;
 
   @override
   void initState() {
@@ -40,16 +42,17 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
   Future<void> _sendMessage() async {
     final content = _composerController.text.trim();
     if (content.isEmpty || _sending) return;
-    setState(() => _sending = true);
+    setState(() {
+      _sending = true;
+      _sendError = null;
+    });
     try {
       await GroupService.postMessage(groupId: widget.group.id, content: content);
       _composerController.clear();
       _reloadMessages();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not send: $e — are you a member of this group?')),
-      );
+      setState(() => _sendError = friendlyError(e));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -124,6 +127,7 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
           ],
         ),
       ),
+      if (_sendError != null) InlineError(message: _sendError!),
       const SizedBox(height: 14),
       FutureBuilder<List<GroupMessage>>(
         future: _messagesFuture,
@@ -141,11 +145,10 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
           }
           if (snapshot.hasError) {
             return Padding(
-              padding: const EdgeInsets.only(top: 30),
-              child: Center(
-                child: Text('Could not load messages.\n${snapshot.error}',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: AppColors.textMuted)),
+              padding: const EdgeInsets.only(top: 10),
+              child: InlineErrorState(
+                message: friendlyError(snapshot.error!),
+                onRetry: _reloadMessages,
               ),
             );
           }

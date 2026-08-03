@@ -3,6 +3,7 @@ import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/anonity_logo.dart';
 import '../widgets/skeleton.dart';
+import '../widgets/app_feedback.dart';
 import '../services/post_service.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -44,6 +45,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
     setState(() {
       _searchFuture = query.trim().isEmpty ? null : PostService.searchPosts(query);
     });
+  }
+
+  void _reloadTrending() {
+    setState(() => _trendingFuture = PostService.fetchTrending());
   }
 
   @override
@@ -160,9 +165,11 @@ class _ExploreScreenState extends State<ExploreScreen> {
                 }
                 if (snapshot.hasError) {
                   return Padding(
-                    padding: const EdgeInsets.only(top: 20),
-                    child: Text('Could not load trending posts.\n${snapshot.error}',
-                        style: const TextStyle(color: AppColors.textMuted)),
+                    padding: const EdgeInsets.only(top: 10),
+                    child: InlineErrorState(
+                      message: friendlyError(snapshot.error!),
+                      onRetry: _reloadTrending,
+                    ),
                   );
                 }
                 final posts = snapshot.data ?? [];

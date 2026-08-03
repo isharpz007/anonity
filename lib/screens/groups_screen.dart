@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/skeleton.dart';
+import '../widgets/app_feedback.dart';
 import '../services/group_service.dart';
 import 'group_details_screen.dart';
 
@@ -33,11 +34,11 @@ class _GroupsScreenState extends State<GroupsScreen> {
     try {
       await GroupService.joinGroup(g.id);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Joined ${g.name}.')));
+      showToast(context, 'Joined ${g.name}.');
       _reload();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not join: $e')));
+      showToast(context, 'Could not join: ${friendlyError(e)}');
     }
   }
 
@@ -105,11 +106,10 @@ class _GroupsScreenState extends State<GroupsScreen> {
                     return ListView(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(top: 60),
-                          child: Center(
-                            child: Text('Could not load groups.\n${snapshot.error}',
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(color: AppColors.textMuted)),
+                          padding: const EdgeInsets.only(top: 40),
+                          child: InlineErrorState(
+                            message: friendlyError(snapshot.error!),
+                            onRetry: _reload,
                           ),
                         ),
                       ],

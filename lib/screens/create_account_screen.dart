@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_feedback.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
 
@@ -20,6 +21,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   bool _obscureConfirm = true;
   bool _agreed = false;
   bool _loading = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -30,30 +32,27 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     super.dispose();
   }
 
-  void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
-  }
-
   Future<void> _createAccount() async {
     final username = _usernameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text;
     final confirm = _confirmController.text;
+    setState(() => _error = null);
 
     if (username.isEmpty || email.isEmpty || password.isEmpty) {
-      _showError('Fill in username, email, and password.');
+      setState(() => _error = 'Fill in username, email, and password.');
       return;
     }
     if (password != confirm) {
-      _showError('Passwords do not match.');
+      setState(() => _error = 'Passwords do not match.');
       return;
     }
     if (password.length < 6) {
-      _showError('Password must be at least 6 characters.');
+      setState(() => _error = 'Password must be at least 6 characters.');
       return;
     }
     if (!_agreed) {
-      _showError('Please agree to the Terms of Service and Privacy Policy.');
+      setState(() => _error = 'Please agree to the Terms of Service and Privacy Policy.');
       return;
     }
 
@@ -68,15 +67,19 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       if (loggedIn) {
         Navigator.of(context).popUntil((route) => route.isFirst);
       } else {
-        _showError('Check your email to confirm your account, then log in.');
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
+        // Confirmation-needed is informational, not an error — a
+        // toast on the screen the user lands on next is enough.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) showToast(context, 'Check your email to confirm your account, then log in.');
+        });
       }
     } on AuthException catch (e) {
-      _showError(e.message);
+      setState(() => _error = e.message);
     } catch (e) {
-      _showError('Something went wrong. Please try again.');
+      setState(() => _error = friendlyError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -203,6 +206,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 6),
+              if (_error != null) InlineError(message: _error!),
               const SizedBox(height: 6),
               ElevatedButton(
                 onPressed: _loading ? null : _createAccount,

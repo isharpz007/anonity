@@ -1,11 +1,11 @@
 {
-    "name": "anonity",
-    "short_name": "anonity",
+    "name": "Anonity",
+    "short_name": "Anonity",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0B0A10",
     "theme_color": "#0B0A10",
-    "description": "A new Flutter project.",
+    "description": "Anonity — Speak freely. Stay anonymous.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

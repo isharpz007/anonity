@@ -1,56 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="Anonity — Speak freely. Stay anonymous.">
 
-  <!-- iOS meta tags & icons -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="anonity">
+  <!--
+    viewport-fit=cover lets the page draw underneath the iPhone notch /
+    Dynamic Island / status-bar area instead of leaving it to the
+    browser's default (white) background. Paired with the dark
+    background-color below and the theme-color meta tag, this closes
+    the white gap at the top of the screen on iOS.
+  -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <!-- Tints the browser chrome (and, in standalone/home-screen mode,
+       the status-bar area) to match the app instead of default white. -->
+  <meta name="theme-color" content="#0B0A10">
+
+  <!-- iOS: lets content flow under the status bar instead of pushing
+       a white bar down from behind it; only fully applies once the
+       app is added to the Home Screen, but doesn't hurt in-browser. -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Anonity">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>anonity</title>
+  <title>Anonity</title>
   <link rel="manifest" href="manifest.json">
 
+  <style>
+    /* Paint the page dark immediately — before Flutter's canvas has
+       even mounted — so there's no flash (or persistent strip) of
+       white behind the notch/status bar while the app boots. */
+    html, body {
+      background-color: #0B0A10;
+      margin: 0;
+      height: 100%;
+    }
+  </style>
 
-  <!-- This white strip is actually the browser's own chrome peeking through — not a Flutter layout bug. Since this is a web app (deployed via Vercel, opened in Safari), Flutter can't paint that top sliver directly; it's controlled by meta tags in web/index.html and web/manifest.json. The default Flutter web template leaves those as plain white, which clashes with your dark theme. -->
-
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0B0A10">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-<style>
-  html, body {
-    background-color: #0B0A10;
-    margin: 0;
-    height: 100%;
-  }
-</style>
-
-  <!-- This white strip is actually the browser's own chrome peeking through — not a Flutter layout bug. Since this is a web app (deployed via Vercel, opened in Safari), Flutter can't paint that top sliver directly; it's controlled by meta tags in web/index.html and web/manifest.json. The default Flutter web template leaves those as plain white, which clashes with your dark theme. -->
+  <script>
+    // The value below is injected by flutter build, do not touch.
+    var serviceWorkerVersion = null;
+  </script>
+  <script src="flutter.js" defer></script>
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+  <script>
+    window.addEventListener('load', function (ev) {
+      _flutter.loader.loadEntrypoint({
+        serviceWorker: {
+          serviceWorkerVersion: serviceWorkerVersion,
+        },
+        onEntrypointLoaded: function (engineInitializer) {
+          engineInitializer.initializeEngine().then(function (appRunner) {
+            appRunner.runApp();
+          });
+        }
+      });
+    });
+  </script>
 </body>
 </html>

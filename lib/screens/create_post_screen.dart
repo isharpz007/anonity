@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/anonity_logo.dart';
+import '../widgets/app_feedback.dart';
 import '../services/post_service.dart';
 
 class CreatePostScreen extends StatefulWidget {
@@ -16,6 +17,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   String? _section;
   bool _anonymous = true;
   bool _posting = false;
+  String? _error;
   static const int _maxLen = 500;
 
   @override
@@ -28,7 +30,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   Future<void> _post() async {
     final content = _controller.text.trim();
     if (content.isEmpty || _posting) return;
-    setState(() => _posting = true);
+    setState(() {
+      _posting = true;
+      _error = null;
+    });
     try {
       await PostService.createPost(
         content: content,
@@ -37,15 +42,13 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       );
       if (!mounted) return;
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_anonymous ? 'Posted anonymously to Anonity.' : 'Posted to Anonity.')),
-      );
+      showToast(context, _anonymous ? 'Posted anonymously to Anonity.' : 'Posted to Anonity.');
     } catch (e) {
       if (!mounted) return;
-      setState(() => _posting = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Could not post: $e')),
-      );
+      setState(() {
+        _posting = false;
+        _error = friendlyError(e);
+      });
     }
   }
 
@@ -132,6 +135,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               ),
             ),
             // Pinned action bar — stays just above the keyboard.
+            if (_error != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                child: InlineError(message: _error!),
+              ),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
               child: Row(

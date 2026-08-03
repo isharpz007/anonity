@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../widgets/anonity_logo.dart';
 import '../widgets/post_card.dart';
 import '../widgets/skeleton.dart';
+import '../widgets/app_feedback.dart';
 import '../services/post_service.dart';
 import 'create_post_screen.dart';
 
@@ -148,11 +149,10 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                       }
                       if (snapshot.hasError) {
                         return Padding(
-                          padding: const EdgeInsets.only(top: 40),
-                          child: Center(
-                            child: Text('Could not load posts.\n${snapshot.error}',
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(color: AppColors.textMuted)),
+                          padding: const EdgeInsets.only(top: 20),
+                          child: InlineErrorState(
+                            message: friendlyError(snapshot.error!),
+                            onRetry: _loadPosts,
                           ),
                         );
                       }
