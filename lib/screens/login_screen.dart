@@ -43,8 +43,10 @@ class _LoginScreenState extends State<LoginScreen> {
       // swaps to RootShell automatically — just pop back to it.
       Navigator.of(context).popUntil((route) => route.isFirst);
     } on AuthException catch (e) {
+      print('❌ Login failed: ${e.message}');
       setState(() => _error = e.message);
     } catch (e) {
+      print('❌ Login error: $e');
       setState(() => _error = friendlyError(e));
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -70,15 +72,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
               const SizedBox(height: 6),
               const Text('Log in to continue to Anonity',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+                  style:
+                      TextStyle(color: AppColors.textSecondary, fontSize: 14)),
               const SizedBox(height: 28),
-              Center(child: Image.asset(kAnonityLogoAsset, width: 56, height: 56)),
+              Center(
+                  child: Image.asset(kAnonityLogoAsset, width: 56, height: 56)),
               const SizedBox(height: 28),
               TextField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.mail_outline_rounded, color: AppColors.textMuted),
+                  prefixIcon: Icon(Icons.mail_outline_rounded,
+                      color: AppColors.textMuted),
                   hintText: 'Email',
                 ),
               ),
@@ -87,11 +92,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _passwordController,
                 obscureText: _obscure,
                 decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.lock_outline_rounded, color: AppColors.textMuted),
+                  prefixIcon: const Icon(Icons.lock_outline_rounded,
+                      color: AppColors.textMuted),
                   hintText: 'Password',
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                      _obscure
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
                       color: AppColors.textMuted,
                     ),
                     onPressed: () => setState(() => _obscure = !_obscure),
@@ -114,7 +122,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
                       )
                     : const Text('Log In'),
               ),
@@ -125,7 +134,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 10),
                     child: Text('or continue with',
-                        style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                        style: TextStyle(
+                            color: AppColors.textMuted, fontSize: 12)),
                   ),
                   Expanded(child: Divider()),
                 ],
@@ -134,9 +144,14 @@ class _LoginScreenState extends State<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _SocialButton(icon: Icons.g_mobiledata_rounded, onTap: _socialComingSoon),
-                  _SocialButton(icon: Icons.apple_rounded, onTap: _socialComingSoon),
-                  _SocialButton(icon: Icons.chat_bubble_rounded, onTap: _socialComingSoon),
+                  _SocialButton(
+                      icon: Icons.g_mobiledata_rounded,
+                      onTap: _socialComingSoon),
+                  _SocialButton(
+                      icon: Icons.apple_rounded, onTap: _socialComingSoon),
+                  _SocialButton(
+                      icon: Icons.chat_bubble_rounded,
+                      onTap: _socialComingSoon),
                 ],
               ),
               const SizedBox(height: 26),
@@ -145,10 +160,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text("Don't have an account?",
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                        style: TextStyle(
+                            color: AppColors.textSecondary, fontSize: 13)),
                     TextButton(
                       onPressed: () => Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => const CreateAccountScreen()),
+                        MaterialPageRoute(
+                            builder: (_) => const CreateAccountScreen()),
                       ),
                       child: const Text('Create Account'),
                     ),
