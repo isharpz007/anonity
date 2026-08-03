@@ -101,7 +101,7 @@ class _PostCardState extends State<PostCard> {
                 onTap: _toggleLike,
               ),
               const Spacer(),
-              Icon(Icons.ios_share_rounded, size: 17, color: AppColors.textMuted),
+              const Icon(Icons.ios_share_rounded, size: 17, color: AppColors.textMuted),
             ],
           ),
         ],

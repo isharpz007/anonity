@@ -12,6 +12,7 @@ class CreatePostScreen extends StatefulWidget {
 
 class _CreatePostScreenState extends State<CreatePostScreen> {
   final _controller = TextEditingController();
+  final _focusNode = FocusNode();
   String? _section;
   bool _anonymous = true;
   bool _posting = false;
@@ -20,6 +21,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -62,72 +64,79 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           ],
         ),
       ),
+      // Everything above the bottom action bar scrolls, so when the
+      // keyboard opens the text field's caret stays visible instead of
+      // being squeezed off-screen.
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  maxLength: _maxLen,
-                  maxLines: null,
-                  expands: true,
-                  textAlignVertical: TextAlignVertical.top,
-                  onChanged: (_) => setState(() {}),
-                  style: const TextStyle(fontSize: 16),
-                  decoration: const InputDecoration(
-                    hintText: "What's on your mind?",
-                    counterText: '',
-                    filled: false,
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                  ),
-                ),
-              ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Text('$len/$_maxLen',
-                    style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
-              ),
-              const Divider(height: 24),
-              const Text('Choose Section', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  for (final s in const ['Spicy', 'Relationship', 'Work']) ...[
-                    Expanded(child: _SectionChoice(
-                      label: s,
-                      selected: _section == s,
-                      onTap: () => setState(() => _section = _section == s ? null : s),
-                    )),
-                    if (s != 'Work') const SizedBox(width: 10),
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      autofocus: true,
+                      maxLength: _maxLen,
+                      minLines: 6,
+                      maxLines: null,
+                      textAlignVertical: TextAlignVertical.top,
+                      onChanged: (_) => setState(() {}),
+                      style: const TextStyle(fontSize: 16),
+                      decoration: const InputDecoration(
+                        hintText: "What's on your mind?",
+                        counterText: '',
+                        filled: false,
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text('$len/$_maxLen',
+                          style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                    ),
+                    const Divider(height: 24),
+                    const Text('Choose Section', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        for (final s in const ['Spicy', 'Relationship', 'Work']) ...[
+                          Expanded(child: _SectionChoice(
+                            label: s,
+                            selected: _section == s,
+                            onTap: () => setState(() => _section = _section == s ? null : s),
+                          )),
+                          if (s != 'Work') const SizedBox(width: 10),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    const Divider(height: 25),
+                    _OptionRow(
+                      icon: Icons.person_outline_rounded,
+                      label: 'Anonymous',
+                      trailing: Switch(
+                        value: _anonymous,
+                        activeColor: Colors.white,
+                        activeTrackColor: AppColors.primary,
+                        onChanged: (v) => setState(() => _anonymous = v),
+                      ),
+                    ),
                   ],
-                ],
-              ),
-              const SizedBox(height: 16),
-              _OptionRow(icon: Icons.poll_outlined, label: 'Add Poll', onTap: () {}),
-              const Divider(height: 1),
-              _OptionRow(icon: Icons.emoji_emotions_outlined, label: 'Add Emoji', onTap: () {}),
-              const Divider(height: 1),
-              _OptionRow(
-                icon: Icons.person_outline_rounded,
-                label: 'Anonymous',
-                trailing: Switch(
-                  value: _anonymous,
-                  activeColor: Colors.white,
-                  activeTrackColor: AppColors.primary,
-                  onChanged: (v) => setState(() => _anonymous = v),
                 ),
               ),
-              const SizedBox(height: 16),
-              Row(
+            ),
+            // Pinned action bar — stays just above the keyboard.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: Row(
                 children: [
                   IconButton(icon: const Icon(Icons.image_outlined, color: AppColors.textMuted), onPressed: () {}),
-                  IconButton(icon: const Icon(Icons.bar_chart_rounded, color: AppColors.textMuted), onPressed: () {}),
-                  IconButton(icon: const Icon(Icons.mood_rounded, color: AppColors.textMuted), onPressed: () {}),
                   const Spacer(),
                   ElevatedButton(
                     onPressed: _posting ? null : _post,
@@ -145,8 +154,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

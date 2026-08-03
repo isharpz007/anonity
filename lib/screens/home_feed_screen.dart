@@ -82,7 +82,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                   },
                   selectedColor: hasSection ? sectionColor(label) : AppColors.primary,
                   backgroundColor: AppColors.surface,
-                  side: BorderSide(color: AppColors.border),
+                  side: const BorderSide(color: AppColors.border),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 );
               },
