@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/anonity_logo.dart';
+import '../widgets/skeleton.dart';
 import '../services/post_service.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -87,6 +88,19 @@ class _ExploreScreenState extends State<ExploreScreen> {
               child: FutureBuilder<List<int>>(
                 future: _sectionCountsFuture,
                 builder: (context, countsSnap) {
+                  if (countsSnap.connectionState == ConnectionState.waiting) {
+                    return const SkeletonPulse(
+                      child: Row(
+                        children: [
+                          SkeletonSectionCard(),
+                          SizedBox(width: 12),
+                          SkeletonSectionCard(),
+                          SizedBox(width: 12),
+                          SkeletonSectionCard(),
+                        ],
+                      ),
+                    );
+                  }
                   final counts = countsSnap.data;
                   return ListView.separated(
                     scrollDirection: Axis.horizontal,
@@ -133,9 +147,15 @@ class _ExploreScreenState extends State<ExploreScreen> {
               future: _trendingFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Padding(
-                    padding: EdgeInsets.only(top: 30),
-                    child: Center(child: CircularProgressIndicator()),
+                  return const SkeletonPulse(
+                    child: Column(
+                      children: [
+                        SkeletonTrendingRow(),
+                        SkeletonTrendingRow(),
+                        SkeletonTrendingRow(),
+                        SkeletonTrendingRow(),
+                      ],
+                    ),
                   );
                 }
                 if (snapshot.hasError) {
@@ -176,9 +196,14 @@ class _SearchResults extends StatelessWidget {
       future: future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.only(top: 30),
-            child: Center(child: CircularProgressIndicator()),
+          return const SkeletonPulse(
+            child: Column(
+              children: [
+                SkeletonTrendingRow(),
+                SkeletonTrendingRow(),
+                SkeletonTrendingRow(),
+              ],
+            ),
           );
         }
         final results = snapshot.data ?? [];

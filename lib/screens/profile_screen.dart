@@ -3,6 +3,7 @@ import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/anonity_logo.dart';
 import '../widgets/post_card.dart';
+import '../widgets/skeleton.dart';
 import '../services/auth_service.dart';
 import '../services/profile_service.dart';
 import '../services/post_service.dart';
@@ -80,7 +81,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
           future: _future,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return const SkeletonPulse(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(16, 0, 16, 20),
+                  child: Column(
+                    children: [
+                      SkeletonProfileHeader(),
+                      SizedBox(height: 26),
+                      SkeletonPostCard(),
+                      SkeletonPostCard(),
+                    ],
+                  ),
+                ),
+              );
             }
             if (snapshot.hasError) {
               return ListView(

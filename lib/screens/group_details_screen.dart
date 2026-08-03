@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/anonity_logo.dart';
+import '../widgets/skeleton.dart';
 import '../services/group_service.dart';
 
 class GroupDetailsScreen extends StatefulWidget {
@@ -128,9 +129,14 @@ class _GroupDetailsScreenState extends State<GroupDetailsScreen> {
         future: _messagesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Padding(
-              padding: EdgeInsets.only(top: 40),
-              child: Center(child: CircularProgressIndicator()),
+            return const SkeletonPulse(
+              child: Column(
+                children: [
+                  SkeletonGroupMessage(),
+                  SkeletonGroupMessage(),
+                  SkeletonGroupMessage(),
+                ],
+              ),
             );
           }
           if (snapshot.hasError) {

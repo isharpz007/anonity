@@ -3,6 +3,7 @@ import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/anonity_logo.dart';
 import '../widgets/post_card.dart';
+import '../widgets/skeleton.dart';
 import '../services/post_service.dart';
 import 'create_post_screen.dart';
 
@@ -82,7 +83,7 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                   },
                   selectedColor: hasSection ? sectionColor(label) : AppColors.primary,
                   backgroundColor: AppColors.surface,
-                  side: const BorderSide(color: AppColors.border),
+                  side: BorderSide(color: AppColors.border),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 );
               },
@@ -135,9 +136,14 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                     future: _postsFuture,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Padding(
-                          padding: EdgeInsets.only(top: 60),
-                          child: Center(child: CircularProgressIndicator()),
+                        return const SkeletonPulse(
+                          child: Column(
+                            children: [
+                              SkeletonPostCard(),
+                              SkeletonPostCard(),
+                              SkeletonPostCard(),
+                            ],
+                          ),
                         );
                       }
                       if (snapshot.hasError) {

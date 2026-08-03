@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
+import '../widgets/skeleton.dart';
 import '../services/group_service.dart';
 import 'group_details_screen.dart';
 
@@ -85,7 +86,20 @@ class _GroupsScreenState extends State<GroupsScreen> {
                 future: _future,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const SkeletonPulse(
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(16, 0, 16, 20),
+                        child: Column(
+                          children: [
+                            SkeletonGroupTile(),
+                            SizedBox(height: 12),
+                            SkeletonGroupTile(),
+                            SizedBox(height: 12),
+                            SkeletonGroupTile(),
+                          ],
+                        ),
+                      ),
+                    );
                   }
                   if (snapshot.hasError) {
                     return ListView(

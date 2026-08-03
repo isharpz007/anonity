@@ -120,8 +120,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     : const Text('Log In'),
               ),
               const SizedBox(height: 22),
-              const Row(
-                children: [
+              Row(
+                children: const [
                   Expanded(child: Divider()),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 10),

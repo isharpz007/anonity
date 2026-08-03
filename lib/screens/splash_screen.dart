@@ -18,7 +18,7 @@ class SplashScreen extends StatelessWidget {
               const Spacer(flex: 3),
               Image.asset(kAnonityLogoAsset, width: 130, height: 130),
               const SizedBox(height: 28),
-              const Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
