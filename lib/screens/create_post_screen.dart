@@ -42,7 +42,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       );
       if (!mounted) return;
       Navigator.of(context).pop();
-      showToast(context, _anonymous ? 'Posted anonymously to Anonity.' : 'Posted to Anonity.');
+      showToast(context,
+          _anonymous ? 'Posted anonymously to Anonity.' : 'Posted to Anonity.');
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -57,13 +58,18 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     final len = _controller.text.length;
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.close_rounded), onPressed: () => Navigator.of(context).pop()),
+        leading: IconButton(
+            icon: const Icon(Icons.close_rounded),
+            onPressed: () => Navigator.of(context).pop()),
         title: Row(
           children: [
             Image.asset(kAnonityLogoAsset, width: 26, height: 26),
             const SizedBox(width: 8),
-            Text(_anonymous ? 'Anonymous' : 'You', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-            const Icon(Icons.expand_more_rounded, size: 18, color: AppColors.textMuted),
+            Text(_anonymous ? 'Anonymous' : 'You',
+                style:
+                    const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+            const Icon(Icons.expand_more_rounded,
+                size: 18, color: AppColors.textMuted),
           ],
         ),
       ),
@@ -101,18 +107,27 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: Text('$len/$_maxLen',
-                          style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                          style: const TextStyle(
+                              color: AppColors.textMuted, fontSize: 12)),
                     ),
                     const Divider(height: 24),
-                    const Text('Choose Section', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                    const Text('Choose Section',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700, fontSize: 14)),
                     const SizedBox(height: 10),
                     Row(
                       children: [
-                        for (final s in const ['Spicy', 'Relationship', 'Work']) ...[
-                          Expanded(child: _SectionChoice(
+                        for (final s in const [
+                          'Spicy',
+                          'Relationship',
+                          'Work'
+                        ]) ...[
+                          Expanded(
+                              child: _SectionChoice(
                             label: s,
                             selected: _section == s,
-                            onTap: () => setState(() => _section = _section == s ? null : s),
+                            onTap: () => setState(
+                                () => _section = _section == s ? null : s),
                           )),
                           if (s != 'Work') const SizedBox(width: 10),
                         ],
@@ -125,7 +140,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       label: 'Anonymous',
                       trailing: Switch(
                         value: _anonymous,
-                        activeColor: Colors.white,
+                        activeThumbColor: Colors.white,
                         activeTrackColor: AppColors.primary,
                         onChanged: (v) => setState(() => _anonymous = v),
                       ),
@@ -144,19 +159,24 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
               child: Row(
                 children: [
-                  IconButton(icon: const Icon(Icons.image_outlined, color: AppColors.textMuted), onPressed: () {}),
+                  IconButton(
+                      icon: const Icon(Icons.image_outlined,
+                          color: AppColors.textMuted),
+                      onPressed: () {}),
                   const Spacer(),
                   ElevatedButton(
                     onPressed: _posting ? null : _post,
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(96, 44),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(22)),
                     ),
                     child: _posting
                         ? const SizedBox(
                             width: 18,
                             height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
                           )
                         : const Text('Post'),
                   ),
@@ -174,7 +194,8 @@ class _SectionChoice extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
-  const _SectionChoice({required this.label, required this.selected, required this.onTap});
+  const _SectionChoice(
+      {required this.label, required this.selected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -186,9 +207,12 @@ class _SectionChoice extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: selected ? color.withOpacity(0.9) : color.withOpacity(0.16),
+          color: selected
+              ? color.withValues(alpha: 0.9)
+              : color.withValues(alpha: 0.16),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(selected ? 1 : 0.4)),
+          border:
+              Border.all(color: color.withValues(alpha: selected ? 1 : 0.4)),
         ),
         child: Text(
           '$label ${sectionEmoji(label)}',
@@ -206,14 +230,12 @@ class _SectionChoice extends StatelessWidget {
 class _OptionRow extends StatelessWidget {
   final IconData icon;
   final String label;
-  final VoidCallback? onTap;
   final Widget? trailing;
-  const _OptionRow({required this.icon, required this.label, this.onTap, this.trailing});
+  const _OptionRow({required this.icon, required this.label, this.trailing});
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
@@ -221,7 +243,9 @@ class _OptionRow extends StatelessWidget {
             Icon(icon, color: AppColors.textSecondary, size: 20),
             const SizedBox(width: 12),
             Expanded(child: Text(label, style: const TextStyle(fontSize: 14))),
-            trailing ?? const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
+            trailing ??
+                const Icon(Icons.chevron_right_rounded,
+                    color: AppColors.textMuted),
           ],
         ),
       ),
