@@ -7,6 +7,7 @@ import '../widgets/skeleton.dart';
 import '../widgets/app_feedback.dart';
 import '../services/post_service.dart';
 import 'create_post_screen.dart';
+import 'settings_screen.dart';
 
 class HomeFeedScreen extends StatefulWidget {
   final bool embedded;
@@ -17,7 +18,13 @@ class HomeFeedScreen extends StatefulWidget {
 }
 
 class _HomeFeedScreenState extends State<HomeFeedScreen> {
-  final List<String> _tabs = const ['For You', 'Following', 'Spicy', 'Relationship', 'Work'];
+  final List<String> _tabs = const [
+    'For You',
+    'Following',
+    'Spicy',
+    'Relationship',
+    'Work'
+  ];
   int _tabIndex = 0;
 
   late Future<List<AppPost>> _postsFuture;
@@ -44,13 +51,20 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
           children: [
             Image.asset(kAnonityLogoAsset, width: 30, height: 30),
             const SizedBox(width: 8),
-            const Text('Anonity', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19)),
+            const Text('Anonity',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19)),
           ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none_rounded),
+            icon: const Icon(Icons.search_rounded),
             onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_rounded),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
           ),
           const SizedBox(width: 6),
         ],
@@ -82,10 +96,13 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                     setState(() => _tabIndex = i);
                     _loadPosts();
                   },
-                  selectedColor: hasSection ? sectionColor(label) : AppColors.primary,
+                  selectedColor: hasSection
+                      ? sectionColor(label)
+                      : const Color.fromARGB(255, 92, 239, 255),
                   backgroundColor: AppColors.surface,
                   side: const BorderSide(color: AppColors.border),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
                 );
               },
             ),
@@ -100,7 +117,9 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                   InkWell(
                     onTap: () async {
                       await Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const CreatePostScreen(), fullscreenDialog: true),
+                        MaterialPageRoute(
+                            builder: (_) => const CreatePostScreen(),
+                            fullscreenDialog: true),
                       );
                       _loadPosts();
                     },
@@ -119,7 +138,8 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                           const SizedBox(width: 10),
                           const Expanded(
                             child: Text("What's on your mind?",
-                                style: TextStyle(color: AppColors.textMuted, fontSize: 14)),
+                                style: TextStyle(
+                                    color: AppColors.textMuted, fontSize: 14)),
                           ),
                           Container(
                             padding: const EdgeInsets.all(6),
@@ -127,7 +147,8 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                               color: AppColors.primary,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.add_rounded, size: 18, color: Colors.white),
+                            child: const Icon(Icons.add_rounded,
+                                size: 18, color: Colors.white),
                           ),
                         ],
                       ),
@@ -162,11 +183,14 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
                           padding: const EdgeInsets.only(top: 40),
                           child: Center(
                             child: Text('No posts yet in ${_tabs[_tabIndex]}.',
-                                style: const TextStyle(color: AppColors.textMuted)),
+                                style: const TextStyle(
+                                    color: AppColors.textMuted)),
                           ),
                         );
                       }
-                      return Column(children: [for (final post in posts) PostCard(post: post)]);
+                      return Column(children: [
+                        for (final post in posts) PostCard(post: post)
+                      ]);
                     },
                   ),
                 ],

@@ -38,7 +38,10 @@ class AppColors {
 class AppTheme {
   AppTheme._();
 
-  static ThemeData get dark {
+  static final ThemeData dark = _buildDark();
+  static final ThemeData light = _buildLight();
+
+  static ThemeData _buildDark() {
     final base = ThemeData.dark(useMaterial3: true);
     final textTheme = GoogleFonts.interTextTheme(base.textTheme).apply(
       bodyColor: AppColors.textPrimary,
@@ -53,6 +56,7 @@ class AppTheme {
         primary: AppColors.primary,
         secondary: AppColors.primaryGlow,
         surface: AppColors.surface,
+        background: AppColors.background,
         error: AppColors.spicy,
       ),
       appBarTheme: const AppBarTheme(
@@ -66,7 +70,8 @@ class AppTheme {
         filled: true,
         fillColor: AppColors.surface,
         hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.border),
@@ -86,7 +91,8 @@ class AppTheme {
           foregroundColor: Colors.white,
           minimumSize: const Size.fromHeight(52),
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
@@ -95,14 +101,94 @@ class AppTheme {
           foregroundColor: AppColors.textPrimary,
           minimumSize: const Size.fromHeight(52),
           side: const BorderSide(color: AppColors.border),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(foregroundColor: AppColors.primaryGlow),
       ),
-      dividerTheme: const DividerThemeData(color: AppColors.border, thickness: 1),
+      dividerTheme:
+          const DividerThemeData(color: AppColors.border, thickness: 1),
+      snackBarTheme: const SnackBarThemeData(
+        backgroundColor: AppColors.surfaceElevated,
+        contentTextStyle: TextStyle(color: AppColors.textPrimary),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  static ThemeData _buildLight() {
+    final base = ThemeData.light(useMaterial3: true);
+    final textTheme = GoogleFonts.interTextTheme(base.textTheme).apply(
+      bodyColor: AppColors.textPrimary,
+      displayColor: AppColors.textPrimary,
+    );
+
+    return base.copyWith(
+      scaffoldBackgroundColor: const Color(0xFF0D0C12),
+      primaryColor: AppColors.primary,
+      textTheme: textTheme,
+      colorScheme: base.colorScheme.copyWith(
+        primary: AppColors.primary,
+        secondary: AppColors.primaryGlow,
+        surface: const Color(0xFF1A1824),
+        background: const Color(0xFF0D0C12),
+        error: AppColors.spicy,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF0D0C12),
+        elevation: 0,
+        centerTitle: false,
+        surfaceTintColor: Colors.transparent,
+        iconTheme: IconThemeData(color: AppColors.textPrimary),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFF1A1824),
+        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(52),
+          elevation: 0,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.textPrimary,
+          minimumSize: const Size.fromHeight(52),
+          side: const BorderSide(color: AppColors.border),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: AppColors.primaryGlow),
+      ),
+      dividerTheme:
+          const DividerThemeData(color: AppColors.border, thickness: 1),
       snackBarTheme: const SnackBarThemeData(
         backgroundColor: AppColors.surfaceElevated,
         contentTextStyle: TextStyle(color: AppColors.textPrimary),

@@ -8,6 +8,7 @@ import '../widgets/app_feedback.dart';
 import '../services/auth_service.dart';
 import '../services/profile_service.dart';
 import '../services/post_service.dart';
+import 'settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final bool embedded;
@@ -77,6 +78,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Profile',
             style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20)),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_rounded),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
+          ),
           IconButton(
               icon: const Icon(Icons.logout_rounded),
               onPressed: _confirmSignOut),

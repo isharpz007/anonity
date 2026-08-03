@@ -119,7 +119,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: const BoxDecoration(
-                          color: AppColors.primary,
+                          color: Color.fromARGB(255, 172, 163, 211),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.edit, size: 12, color: Colors.white),
