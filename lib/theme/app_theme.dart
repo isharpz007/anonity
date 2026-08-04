@@ -56,7 +56,6 @@ class AppTheme {
         primary: AppColors.primary,
         secondary: AppColors.primaryGlow,
         surface: AppColors.surface,
-        background: AppColors.background,
         error: AppColors.spicy,
       ),
       appBarTheme: const AppBarTheme(
@@ -134,7 +133,6 @@ class AppTheme {
         primary: AppColors.primary,
         secondary: AppColors.primaryGlow,
         surface: const Color(0xFF1A1824),
-        background: const Color(0xFF0D0C12),
         error: AppColors.spicy,
       ),
       appBarTheme: const AppBarTheme(

@@ -43,10 +43,10 @@ class _LoginScreenState extends State<LoginScreen> {
       // swaps to RootShell automatically — just pop back to it.
       Navigator.of(context).popUntil((route) => route.isFirst);
     } on AuthException catch (e) {
-      print('❌ Login failed: ${e.message}');
+      debugPrint('❌ Login failed: ${e.message}');
       setState(() => _error = e.message);
     } catch (e) {
-      print('❌ Login error: $e');
+      debugPrint('❌ Login error: $e');
       setState(() => _error = friendlyError(e));
     } finally {
       if (mounted) setState(() => _loading = false);

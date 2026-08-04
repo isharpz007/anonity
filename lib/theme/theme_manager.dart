@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,7 +17,7 @@ extension AppBrightnessChoiceX on AppBrightnessChoice {
       case AppBrightnessChoice.dark:
         return 'dark';
       case AppBrightnessChoice.system:
-      return 'system';
+        return 'system';
     }
   }
 
@@ -26,7 +28,7 @@ extension AppBrightnessChoiceX on AppBrightnessChoice {
       case AppBrightnessChoice.dark:
         return 'Dark mode';
       case AppBrightnessChoice.system:
-      return 'System mode';
+        return 'System mode';
     }
   }
 
@@ -50,7 +52,7 @@ extension AppThemeChoiceX on AppThemeChoice {
       case AppThemeChoice.customGradient:
         return 'custom_gradient';
       case AppThemeChoice.defaultBrand:
-      return 'default_brand';
+        return 'default_brand';
     }
   }
 
@@ -61,7 +63,7 @@ extension AppThemeChoiceX on AppThemeChoice {
       case AppThemeChoice.customGradient:
         return 'Custom Gradient';
       case AppThemeChoice.defaultBrand:
-      return 'Default App Theme';
+        return 'Default App Theme';
     }
   }
 }
@@ -109,9 +111,9 @@ class ThemeController extends ChangeNotifier {
 
   AppBrightnessChoice brightnessChoice = AppBrightnessChoice.system;
   AppThemeChoice themeChoice = AppThemeChoice.defaultBrand;
-  final List<Color> customGradientColors = [
+  final List<Color> customGradientColors = const [
     Color(0xFF8B6BFF),
-    Color(0xFF6A45E8)
+    Color(0xFF6A45E8),
   ];
 
   bool get isSystemMode => brightnessChoice == AppBrightnessChoice.system;
@@ -122,7 +124,7 @@ class ThemeController extends ChangeNotifier {
       case AppBrightnessChoice.dark:
         return ThemeMode.dark;
       case AppBrightnessChoice.system:
-      return ThemeMode.system;
+        return ThemeMode.system;
     }
   }
 
@@ -138,10 +140,10 @@ class ThemeController extends ChangeNotifier {
       orElse: () => AppThemeChoice.defaultBrand,
     );
 
-    customGradientColors[0] =
-        Color(prefs.getInt(_customColor1Key) ?? customGradientColors[0].value);
-    customGradientColors[1] =
-        Color(prefs.getInt(_customColor2Key) ?? customGradientColors[1].value);
+    customGradientColors[0] = Color(
+        prefs.getInt(_customColor1Key) ?? customGradientColors[0].toARGB32());
+    customGradientColors[1] = Color(
+        prefs.getInt(_customColor2Key) ?? customGradientColors[1].toARGB32());
     final customColor3Value = prefs.getInt(_customColor3Key);
     if (customColor3Value != null) {
       if (customGradientColors.length < 3) {
@@ -162,10 +164,10 @@ class ThemeController extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_themeModeKey, brightnessChoice.storageKey);
     await prefs.setString(_themeChoiceKey, themeChoice.storageKey);
-    await prefs.setInt(_customColor1Key, customGradientColors[0].value);
-    await prefs.setInt(_customColor2Key, customGradientColors[1].value);
+    await prefs.setInt(_customColor1Key, customGradientColors[0].toARGB32());
+    await prefs.setInt(_customColor2Key, customGradientColors[1].toARGB32());
     if (customGradientColors.length >= 3) {
-      await prefs.setInt(_customColor3Key, customGradientColors[2].value);
+      await prefs.setInt(_customColor3Key, customGradientColors[2].toARGB32());
     } else {
       await prefs.remove(_customColor3Key);
     }
@@ -233,9 +235,11 @@ class ThemeController extends ChangeNotifier {
 }
 
 class ThemeControllerProvider extends InheritedNotifier<ThemeController> {
-  const ThemeControllerProvider(
-      {super.key, required ThemeController notifier, required Widget child})
-      : super(notifier: notifier, child: child);
+  const ThemeControllerProvider({
+    super.key,
+    required ThemeController notifier,
+    required super.child,
+  }) : super(notifier: notifier);
 
   static ThemeController of(BuildContext context) {
     final provider =

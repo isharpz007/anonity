@@ -11,6 +11,6 @@ class SupabaseConfig {
   SupabaseConfig._();
 
   static const String url = 'https://wzfgyrorszweotmnvduv.supabase.co';
-  static const String anonKey =
+  static const String publishableKey =
       'sb_publishable_-J1ECyHgYQJgtwwbG8Q2rA_CWEMq_W8';
 }

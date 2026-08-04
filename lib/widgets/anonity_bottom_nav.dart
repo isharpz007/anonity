@@ -101,7 +101,7 @@ class _CenterButton extends StatelessWidget {
           gradient: AppColors.primaryGradient,
           boxShadow: [
             BoxShadow(
-                color: AppColors.primary.withOpacity(0.5),
+                color: AppColors.primary.withValues(alpha: 0.5),
                 blurRadius: 14,
                 spreadRadius: 1),
           ],

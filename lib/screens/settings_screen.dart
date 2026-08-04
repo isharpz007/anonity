@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use, prefer_const_constructors, prefer_const_literals_to_create_immutables
+
 import 'package:flutter/material.dart';
 
 import '../theme/theme_manager.dart';
@@ -46,8 +48,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Image.asset(kAnonityLogoAsset, width: 28, height: 28),
                 const SizedBox(width: 10),
                 const Text('Display & Appearance',
-                    style:
-                        TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
               ],
             ),
           ),
@@ -61,27 +62,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _SectionHeader(title: 'Theme mode'),
                 _SelectionCard(
                   children: AppBrightnessChoice.values
-                      .map((choice) => RadioListTile<AppBrightnessChoice>(
-                            visualDensity: VisualDensity.compact,
+                      .map((choice) => ListTile(
                             contentPadding:
                                 const EdgeInsets.symmetric(horizontal: 16),
+                            leading: Radio<AppBrightnessChoice>(
+                              value: choice,
+                              groupValue: controller.brightnessChoice,
+                              onChanged: (value) {
+                                if (value != null) {
+                                  controller.setBrightnessChoice(value);
+                                }
+                              },
+                            ),
                             title: Text(choice.label,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w600)),
+                                style: const TextStyle(fontWeight: FontWeight.w600)),
                             subtitle: Text(
                               choice == AppBrightnessChoice.system
                                   ? 'Match the device setting.'
                                   : 'Use ${choice.label.toLowerCase()} across the app.',
-                              style: const TextStyle(
-                                  color: Colors.white70, fontSize: 13),
+                              style: const TextStyle(color: Colors.white70, fontSize: 13),
                             ),
-                            value: choice,
-                            groupValue: controller.brightnessChoice,
-                            onChanged: (choice) {
-                              if (choice != null) {
-                                controller.setBrightnessChoice(choice);
-                              }
-                            },
+                            onTap: () => controller.setBrightnessChoice(choice),
                           ))
                       .toList(),
                 ),
@@ -89,29 +90,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _SectionHeader(title: 'Appearance'),
                 _SelectionCard(
                   children: AppThemeChoice.values
-                      .map((choice) => RadioListTile<AppThemeChoice>(
-                            visualDensity: VisualDensity.compact,
+                      .map((choice) => ListTile(
                             contentPadding:
                                 const EdgeInsets.symmetric(horizontal: 16),
+                            leading: Radio<AppThemeChoice>(
+                              value: choice,
+                              groupValue: controller.themeChoice,
+                              onChanged: (value) {
+                                if (value != null) {
+                                  controller.setThemeChoice(value);
+                                }
+                              },
+                            ),
                             title: Text(choice.label,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w600)),
+                                style: const TextStyle(fontWeight: FontWeight.w600)),
                             subtitle: Text(
                               choice == AppThemeChoice.systemColors
                                   ? 'Auto-match your phone’s dynamic palette.'
                                   : choice == AppThemeChoice.customGradient
                                       ? 'Choose your own gradient colors.'
                                       : 'Restore the original brand styling.',
-                              style: const TextStyle(
-                                  color: Colors.white70, fontSize: 13),
+                              style: const TextStyle(color: Colors.white70, fontSize: 13),
                             ),
-                            value: choice,
-                            groupValue: controller.themeChoice,
-                            onChanged: (choice) {
-                              if (choice != null) {
-                                controller.setThemeChoice(choice);
-                              }
-                            },
+                            onTap: () => controller.setThemeChoice(choice),
                           ))
                       .toList(),
                 ),
@@ -136,10 +137,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
           child: Text('Tap a tile to choose a color',
-              style: TextStyle(color: Colors.white.withOpacity(0.75))),
+              style: TextStyle(color: Colors.white70)),
         ),
         Wrap(
           spacing: 12,
@@ -178,7 +179,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.25),
+              color: Colors.black.withValues(alpha: 0.25),
               blurRadius: 18,
               offset: const Offset(0, 10)),
         ],
@@ -201,7 +202,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.18),
+              color: Colors.white.withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(18),
             ),
             child: Column(
@@ -226,7 +227,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Container(
                   height: 90,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.12),
+                    color: Colors.white.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: const Center(
@@ -273,7 +274,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         color: swatch,
                         shape: BoxShape.circle,
                         border: Border.all(
-                            color: Colors.white.withOpacity(0.35), width: 1.5),
+                            color: Colors.white.withValues(alpha: 0.35),
+                            width: 1.5),
                       ),
                     ),
                   ),
@@ -296,7 +298,7 @@ class _ThemePreviewCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white10),
       ),
@@ -399,10 +401,11 @@ class _ColorPickerTile extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient:
-                  LinearGradient(colors: [color.withOpacity(0.85), color]),
+                  LinearGradient(colors: [color.withValues(alpha: 0.85), color]),
               border: Border.all(color: Colors.white12, width: 1.5),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 10)
+                BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.25), blurRadius: 10)
               ],
             ),
           ),
