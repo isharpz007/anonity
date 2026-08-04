@@ -15,8 +15,7 @@ extension AppBrightnessChoiceX on AppBrightnessChoice {
       case AppBrightnessChoice.dark:
         return 'dark';
       case AppBrightnessChoice.system:
-      default:
-        return 'system';
+      return 'system';
     }
   }
 
@@ -27,8 +26,7 @@ extension AppBrightnessChoiceX on AppBrightnessChoice {
       case AppBrightnessChoice.dark:
         return 'Dark mode';
       case AppBrightnessChoice.system:
-      default:
-        return 'System mode';
+      return 'System mode';
     }
   }
 
@@ -52,8 +50,7 @@ extension AppThemeChoiceX on AppThemeChoice {
       case AppThemeChoice.customGradient:
         return 'custom_gradient';
       case AppThemeChoice.defaultBrand:
-      default:
-        return 'default_brand';
+      return 'default_brand';
     }
   }
 
@@ -64,8 +61,7 @@ extension AppThemeChoiceX on AppThemeChoice {
       case AppThemeChoice.customGradient:
         return 'Custom Gradient';
       case AppThemeChoice.defaultBrand:
-      default:
-        return 'Default App Theme';
+      return 'Default App Theme';
     }
   }
 }
@@ -126,8 +122,7 @@ class ThemeController extends ChangeNotifier {
       case AppBrightnessChoice.dark:
         return ThemeMode.dark;
       case AppBrightnessChoice.system:
-      default:
-        return ThemeMode.system;
+      return ThemeMode.system;
     }
   }
 
