@@ -111,7 +111,14 @@ class ThemeController extends ChangeNotifier {
 
   AppBrightnessChoice brightnessChoice = AppBrightnessChoice.system;
   AppThemeChoice themeChoice = AppThemeChoice.defaultBrand;
-  final List<Color> customGradientColors = const [
+
+  // FIX: was `const [...]`, which produces an immutable list literal.
+  // Assigning a const list to a non-final field does NOT make it mutable —
+  // any later `customGradientColors[i] = ...` throws
+  // "Unsupported operation: indexed set". Dropping `const` gives a real
+  // growable/mutable List<Color> so index assignment, .add(), and
+  // .removeAt()/.removeRange() all work as intended.
+  final List<Color> customGradientColors = [
     Color(0xFF8B6BFF),
     Color(0xFF6A45E8),
   ];

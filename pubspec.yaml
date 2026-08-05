@@ -33,3 +33,13 @@ flutter_launcher_icons:
   remove_alpha_ios: true
   web:
     generate: true
+
+# FIX: app_links is pulled in transitively by supabase_flutter (used for
+# OAuth/deep-link redirects). Version 7.0.0 has a known AGP/Gradle 8.x
+# release-variant bug that fails with "Cannot query the value of this
+# provider because it has no value available." during
+# `:app_links:compileReleaseJavaWithJavac`. Forcing a newer patch here
+# works around it without needing supabase_flutter itself to bump its
+# constraint yet.
+dependency_overrides:
+  app_links: ^7.2.1

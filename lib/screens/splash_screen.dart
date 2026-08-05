@@ -18,26 +18,36 @@ class SplashScreen extends StatelessWidget {
               const Spacer(flex: 3),
               Image.asset(kAnonityLogoAsset, width: 130, height: 130),
               const SizedBox(height: 28),
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Anon',
-                    style: TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
+              // FIX: was a bare `Row` with default mainAxisSize.max, which
+              // stayed exactly as wide as its Text children and overflowed
+              // by 1.8px on narrower screens. Wrapping in FittedBox lets it
+              // scale down to fit the available width instead of erroring,
+              // and mainAxisSize.min keeps the Row itself tight so
+              // FittedBox has something finite to scale.
+              const FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Anon',
+                      style: TextStyle(
+                        fontSize: 40,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
-                  ),
-                  Text(
-                    'ity',
-                    style: TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primaryGlow,
+                    Text(
+                      'ity',
+                      style: TextStyle(
+                        fontSize: 40,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primaryGlow,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               const SizedBox(height: 10),
               const Text(
