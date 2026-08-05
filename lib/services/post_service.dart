@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/models.dart';
 
@@ -7,15 +8,18 @@ class PostService {
 
   /// Fetches recent posts, optionally filtered by section
   /// ('Spicy' / 'Relationship' / 'Work'). Pass null for all sections.
+  ///
+  /// Each row is wrapped in its own try/catch so a single malformed
+  /// row (missing created_at, broken profile join, etc.) doesn't
+  /// take down the whole feed — the bad row is skipped and the rest
+  /// still render.
   static Future<List<AppPost>> fetchFeed({String? section, int limit = 30}) async {
-    var query = _client
-        .from('posts')
-        .select('*, profiles!posts_author_id_fkey(username)')
-        .order('created_at', ascending: false)
-        .limit(limit);
-
     final rows = section == null
-        ? await query
+        ? await _client
+            .from('posts')
+            .select('*, profiles!posts_author_id_fkey(username)')
+            .order('created_at', ascending: false)
+            .limit(limit)
         : await _client
             .from('posts')
             .select('*, profiles!posts_author_id_fkey(username)')
@@ -26,17 +30,29 @@ class PostService {
     final userId = currentUserId();
     final posts = <AppPost>[];
     for (final row in rows) {
-      bool liked = false;
-      if (userId != null) {
-        final likeRow = await _client
-            .from('likes')
-            .select()
-            .eq('post_id', row['id'] as String)
-            .eq('user_id', userId)
-            .maybeSingle();
-        liked = likeRow != null;
+      try {
+        bool liked = false;
+        if (userId != null) {
+          // Like check is best-effort: if it fails (e.g. transient
+          // network blip on this single row), default to "not liked"
+          // rather than throwing away the post entirely.
+          try {
+            final likeRow = await _client
+                .from('likes')
+                .select()
+                .eq('post_id', row['id'] as String)
+                .eq('user_id', userId)
+                .maybeSingle();
+            liked = likeRow != null;
+          } catch (_) {
+            liked = false;
+          }
+        }
+        posts.add(AppPost.fromMap(row, likedByMe: liked));
+      } catch (e) {
+        // Skip the one bad row; keep the rest of the feed alive.
+        debugPrint('Skipping malformed post row: $e');
       }
-      posts.add(AppPost.fromMap(row, likedByMe: liked));
     }
     return posts;
   }
@@ -49,7 +65,15 @@ class PostService {
         .select('*, profiles!posts_author_id_fkey(username)')
         .order('likes_count', ascending: false)
         .limit(limit);
-    return rows.map<AppPost>((r) => AppPost.fromMap(r)).toList();
+    final out = <AppPost>[];
+    for (final r in rows) {
+      try {
+        out.add(AppPost.fromMap(r));
+      } catch (e) {
+        debugPrint('Skipping malformed trending row: $e');
+      }
+    }
+    return out;
   }
 
   static Future<List<AppPost>> fetchPostsByUser(String userId) async {
@@ -58,7 +82,15 @@ class PostService {
         .select('*, profiles!posts_author_id_fkey(username)')
         .eq('author_id', userId)
         .order('created_at', ascending: false);
-    return rows.map<AppPost>((r) => AppPost.fromMap(r)).toList();
+    final out = <AppPost>[];
+    for (final r in rows) {
+      try {
+        out.add(AppPost.fromMap(r));
+      } catch (e) {
+        debugPrint('Skipping malformed user post row: $e');
+      }
+    }
+    return out;
   }
 
   static Future<void> createPost({
@@ -99,7 +131,15 @@ class PostService {
         .ilike('content', '%$query%')
         .order('created_at', ascending: false)
         .limit(30);
-    return rows.map<AppPost>((r) => AppPost.fromMap(r)).toList();
+    final out = <AppPost>[];
+    for (final r in rows) {
+      try {
+        out.add(AppPost.fromMap(r));
+      } catch (e) {
+        debugPrint('Skipping malformed search result: $e');
+      }
+    }
+    return out;
   }
 }
 

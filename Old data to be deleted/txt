@@ -1,0 +1,125 @@
+App concept is like an open anonymous story community, not a “send me anonymous messages” app where one person receives messages privately.
+
+The difference:
+
+Existing style (like the image)
+
+One person creates a profile/link.
+Other people send anonymous messages to that person.
+The owner controls the conversation.
+The anonymous person is only a sender.
+
+Your app idea
+
+A person posts an anonymous story, and the whole community interacts with it.
+
+Example:
+
+Anonymous Story
+
+“I’ve been pretending I’m happy at university, but I feel completely lost. I don’t know who to talk to.”
+
+Nobody knows who posted it.
+
+Then the community comments:
+
+“I went through the same thing. You’re not alone.”
+“Try talking to someone you trust.”
+“This happened to me during my first year too.”
+
+The original poster can reply while staying anonymous.
+
+
+Key features
+
+1. Anonymous identity system
+
+The person is hidden:
+
+No real name
+No profile picture
+No followers
+No public identity
+
+Instead, the app gives them a random identity:
+
+Example:
+
+“SilentRiver42”
+“BlueMoon87”
+“HiddenVoice21”
+
+The identity stays consistent only inside that conversation so people know they are replying to the same person.
+
+
+2. Community-driven stories
+
+Stories appear in a feed:
+
+Categories:
+
+Relationships
+Family
+School
+Work
+Confessions
+Advice
+Life experiences
+
+People vote or react:
+
+❤️ Support
+💭 Advice
+🤝 Relate
+
+
+3. The poster stays discreet
+
+The poster should not reveal themselves accidentally.
+
+Protection:
+
+No location sharing
+No contacts
+No follower system
+No private messages by default
+Warning when writing identifiable information
+
+Example:
+
+Before posting:
+
+“Your story mentions your workplace and city. Remove details to stay anonymous?”
+
+4. Healthy anonymous discussion
+
+Because anonymity can become toxic, the app needs rules:
+
+Allowed:
+✅ Personal experiences
+✅ Honest opinions
+✅ Asking for advice
+✅ Sharing struggles
+
+Not allowed:
+❌ Naming private individuals
+❌ Doxxing
+❌ Threats
+❌ Harassment
+❌ Sharing private information
+
+
+5. Optional “proof of humanity”
+
+To reduce bots and abuse:
+
+Account verification behind the scenes
+The public stays anonymous
+AI moderation detects harmful content
+
+
+The core idea:
+
+“A place where people can tell their stories without being judged by who they are, and a community responds based on the story itself — not the person behind it.”
+
+It is closer to a mix of Reddit + anonymous confessions + support community, but designed so anonymity protects people instead of creating chaos.

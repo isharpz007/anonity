@@ -36,11 +36,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<_ProfileData> _load() async {
     final userId = AuthService.currentUser?.id;
-    final profile = await ProfileService.fetchCurrentProfile();
-    final posts = userId == null
-        ? <AppPost>[]
-        : await PostService.fetchPostsByUser(userId);
-    return _ProfileData(profile: profile, posts: posts);
+    // Fetch profile and posts independently — if one fails, the
+    // other still shows. A whole-screen blank because the avatar
+    // service blipped is not acceptable.
+    final results = await Future.wait<dynamic>([
+      ProfileService.fetchCurrentProfile().catchError((e) {
+        debugPrint('Profile fetch failed: $e');
+        return null;
+      }),
+      userId == null
+          ? Future.value(<AppPost>[])
+          : PostService.fetchPostsByUser(userId).catchError((e) {
+              debugPrint('User posts fetch failed: $e');
+              return <AppPost>[];
+            }),
+    ]);
+    return _ProfileData(
+      profile: results[0] as AppProfile?,
+      posts: (results[1] as List).cast<AppPost>(),
+    );
   }
 
   void _reload() => setState(() => _future = _load());

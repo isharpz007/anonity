@@ -33,9 +33,24 @@ class _ExploreScreenState extends State<ExploreScreen> {
   void initState() {
     super.initState();
     _trendingFuture = PostService.fetchTrending();
-    _sectionCountsFuture = Future.wait(
-      _sections.map((s) => PostService.fetchSectionPostCount(s['title']!)),
+    // Per-count try/catch via wait — if one section's count query
+    // fails (transient blip, RLS change, etc.) we still render the
+    // other two instead of blocking the whole explore page on it.
+    _sectionCountsFuture = _loadSectionCounts();
+  }
+
+  Future<List<int>> _loadSectionCounts() async {
+    final results = await Future.wait(
+      _sections.map((s) async {
+        try {
+          return await PostService.fetchSectionPostCount(s['title']!);
+        } catch (e) {
+          debugPrint('Section count failed for ${s['title']}: $e');
+          return 0;
+        }
+      }),
     );
+    return results;
   }
 
   @override
@@ -92,7 +107,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
           ),
           const SizedBox(height: 22),
           if (_searchFuture != null)
-            _SearchResults(future: _searchFuture!)
+            _SearchResults(
+              future: _searchFuture!,
+              onRetry: () {
+                // Re-run the last submitted query by going through
+                // the same path as onSubmitted.
+                _runSearch(_searchController.text);
+              },
+            )
           else ...[
             const Text('Popular Sections',
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
@@ -215,7 +237,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
 
 class _SearchResults extends StatelessWidget {
   final Future<List<AppPost>> future;
-  const _SearchResults({required this.future});
+  final VoidCallback onRetry;
+  const _SearchResults({required this.future, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -230,6 +253,15 @@ class _SearchResults extends StatelessWidget {
                 SkeletonTrendingRow(),
                 SkeletonTrendingRow(),
               ],
+            ),
+          );
+        }
+        if (snapshot.hasError) {
+          return Padding(
+            padding: const EdgeInsets.only(top: 30),
+            child: InlineErrorState(
+              message: friendlyError(snapshot.error!),
+              onRetry: onRetry,
             ),
           );
         }

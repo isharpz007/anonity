@@ -53,9 +53,17 @@ class AppPost {
   factory AppPost.fromMap(Map<String, dynamic> map, {bool likedByMe = false}) {
     // profiles may come back as a nested map when the query joins it.
     final profile = map['profiles'];
+    // DateTime.parse is the most likely thrower (null/missing/garbage
+    // created_at). Fall back to "now" so the row still renders
+    // instead of nuking the whole feed. Callers should still treat
+    // this as a malformed row and skip if they want.
+    final createdAtRaw = map['created_at'];
+    final createdAt = createdAtRaw is String
+        ? DateTime.tryParse(createdAtRaw) ?? DateTime.now().toUtc()
+        : DateTime.now().toUtc();
     return AppPost(
-      id: map['id'] as String,
-      authorId: map['author_id'] as String,
+      id: (map['id'] as String?) ?? '',
+      authorId: (map['author_id'] as String?) ?? '',
       authorUsername: profile is Map ? profile['username'] as String? : null,
       isAnonymous: map['is_anonymous'] as bool? ?? true,
       section: (map['section'] as String?) ?? '',
@@ -63,7 +71,7 @@ class AppPost {
       commentsCount: (map['comments_count'] as num?)?.toInt() ?? 0,
       repostsCount: (map['reposts_count'] as num?)?.toInt() ?? 0,
       likesCount: (map['likes_count'] as num?)?.toInt() ?? 0,
-      createdAt: DateTime.parse(map['created_at'] as String),
+      createdAt: createdAt,
       likedByMe: likedByMe,
     );
   }

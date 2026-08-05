@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
@@ -109,4 +110,130 @@ class InlineErrorState extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Empty state — used when an async load succeeds but the result list
+/// is empty. Always offers a hint of what to do next, never just
+/// "Nothing here" silence.
+class EmptyView extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final Widget? action;
+  const EmptyView({
+    super.key,
+    this.icon = Icons.inbox_outlined,
+    required this.title,
+    this.subtitle,
+    this.action,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 36, color: AppColors.textMuted),
+          const SizedBox(height: 12),
+          Text(title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              )),
+          if (subtitle != null) ...[
+            const SizedBox(height: 6),
+            Text(subtitle!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  height: 1.4,
+                )),
+          ],
+          if (action != null) ...[
+            const SizedBox(height: 16),
+            action!,
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Full-screen error — the entire body of a screen failed to load
+/// (not just a section). Centered, large, with a clear retry path.
+/// Use this when there's no shell UI worth showing around the error.
+class FullPageError extends StatelessWidget {
+  final Object error;
+  final VoidCallback onRetry;
+  const FullPageError({super.key, required this.error, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.cloud_off_rounded,
+                size: 48, color: AppColors.textMuted),
+            const SizedBox(height: 16),
+            const Text(
+              "Can't load this screen",
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              friendlyError(error),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 13.5,
+                height: 1.4,
+              ),
+            ),
+            if (kDebugMode) ...[
+              const SizedBox(height: 12),
+              Text(
+                '$error',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ],
+            const SizedBox(height: 18),
+            ElevatedButton(
+              onPressed: onRetry,
+              child: const Text('Try Again'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Tiny helper: shows a SnackBar that auto-dismisses faster for
+/// success (1.5s) than for errors (4s) — so a "Like failed" message
+/// doesn't vanish as quickly as a "Posted!" one.
+void showStatusToast(BuildContext context, String message, {bool isError = false}) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(message),
+      duration: Duration(seconds: isError ? 4 : 2),
+      backgroundColor: isError ? AppColors.spicy : null,
+    ),
+  );
 }
