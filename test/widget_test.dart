@@ -55,6 +55,6 @@ void main() {
     await tester.tap(find.widgetWithText(ElevatedButton, 'Log In'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Welcome back 👋'), findsOneWidget);
+    expect(find.text('Welcome back'), findsOneWidget);
   });
 }

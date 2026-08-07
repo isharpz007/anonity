@@ -57,7 +57,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(TextField), findsWidgets);
-      expect(find.text('Welcome back 👋'), findsOneWidget);
+      expect(find.text('Welcome back'), findsOneWidget);
     });
 
     testWidgets('Create account button exists', (tester) async {

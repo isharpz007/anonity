@@ -28,26 +28,33 @@ class PostService {
             .limit(limit);
 
     final userId = currentUserId();
+
+    // Batch the "did I like this post" check into a single query for
+    // all post ids on this page, instead of one query per post (that
+    // was an N+1 — up to `limit` sequential round trips before the
+    // feed could render). Best-effort: if this one query fails, we
+    // fall back to "not liked" for everything rather than losing the
+    // feed.
+    Set<String> likedPostIds = const {};
+    if (userId != null && rows.isNotEmpty) {
+      try {
+        final postIds = rows.map((r) => r['id'] as String).toList();
+        final likeRows = await _client
+            .from('likes')
+            .select('post_id')
+            .eq('user_id', userId)
+            .inFilter('post_id', postIds);
+        likedPostIds =
+            likeRows.map((r) => r['post_id'] as String).toSet();
+      } catch (_) {
+        likedPostIds = const {};
+      }
+    }
+
     final posts = <AppPost>[];
     for (final row in rows) {
       try {
-        bool liked = false;
-        if (userId != null) {
-          // Like check is best-effort: if it fails (e.g. transient
-          // network blip on this single row), default to "not liked"
-          // rather than throwing away the post entirely.
-          try {
-            final likeRow = await _client
-                .from('likes')
-                .select()
-                .eq('post_id', row['id'] as String)
-                .eq('user_id', userId)
-                .maybeSingle();
-            liked = likeRow != null;
-          } catch (_) {
-            liked = false;
-          }
-        }
+        final liked = likedPostIds.contains(row['id']);
         posts.add(AppPost.fromMap(row, likedByMe: liked));
       } catch (e) {
         // Skip the one bad row; keep the rest of the feed alive.
@@ -93,18 +100,26 @@ class PostService {
     return out;
   }
 
+  /// Creates a post with one or more tags (e.g. ['Emotions', 'Sex']).
+  /// `section` is still written alongside `tags` (as the first tag)
+  /// so the existing 'Spicy' / 'Relationship' / 'Work' feed-tab
+  /// filtering in fetchFeed keeps working unchanged. Requires a
+  /// `tags text[]` column on `posts` — see note below.
   static Future<void> createPost({
     required String content,
     required bool isAnonymous,
-    String? section,
+    List<String> tags = const [],
   }) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) throw Exception('Must be signed in to post.');
+    final cleanTags =
+        tags.map((t) => t.trim()).where((t) => t.isNotEmpty).toList();
     await _client.from('posts').insert({
       'author_id': userId,
       'content': content,
       'is_anonymous': isAnonymous,
-      'section': section,
+      'tags': cleanTags,
+      'section': cleanTags.isNotEmpty ? cleanTags.first : null,
     });
   }
 

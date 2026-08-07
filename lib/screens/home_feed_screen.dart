@@ -60,12 +60,6 @@ class _HomeFeedScreenState extends State<HomeFeedScreen> {
             icon: const Icon(Icons.search_rounded),
             onPressed: () {},
           ),
-          IconButton(
-            icon: const Icon(Icons.settings_rounded),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const SettingsScreen()),
-            ),
-          ),
           const SizedBox(width: 6),
         ],
       ),

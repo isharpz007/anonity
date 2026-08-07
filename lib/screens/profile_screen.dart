@@ -59,31 +59,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _reload() => setState(() => _future = _load());
 
-  Future<void> _confirmSignOut() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surfaceElevated,
-        title: const Text('Log out?'),
-        content:
-            const Text("You'll need to log back in to see your feed again."),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel')),
-          TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Log Out')),
-        ],
-      ),
-    );
-    if (confirmed == true) {
-      await AuthService.signOut();
-      // AuthGate in main.dart listens for this and swaps back to SplashScreen.
-      if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,9 +73,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               MaterialPageRoute(builder: (_) => const SettingsScreen()),
             ),
           ),
-          IconButton(
-              icon: const Icon(Icons.logout_rounded),
-              onPressed: _confirmSignOut),
           const SizedBox(width: 6),
         ],
       ),

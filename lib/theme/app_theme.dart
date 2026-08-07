@@ -21,12 +21,36 @@ class AppColors {
   static const Color textSecondary = Color(0xFFA6A1B5);
   static const Color textMuted = Color(0xFF6E697D);
 
+  // True light-mode palette. Previously _buildLight() reused the dark
+  // background/surface/text colors below, so "light mode" rendered as
+  // dark mode with near-white text on a near-black background.
+  static const Color lightBackground = Color(0xFFFAF9FC);
+  static const Color lightSurface = Color(0xFFFFFFFF);
+  static const Color lightSurfaceElevated = Color(0xFFF2EFFA);
+  static const Color lightSurfaceContainerHigh = Color(0xFFECE7F7);
+  static const Color lightSurfaceContainerHighest = Color(0xFFE7E1F7);
+  static const Color lightBorder = Color(0xFFE3DFEE);
+  static const Color lightOutlineVariant = Color(0xFFDAD4EA);
+  static const Color lightTextPrimary = Color(0xFF1C1A24);
+  static const Color lightTextSecondary = Color(0xFF6E697D);
+  static const Color lightTextMuted = Color(0xFF938DA3);
+
   static const Color spicy = Color(0xFFE0466E);
   static const Color relationship = Color(0xFFB84B8C);
   static const Color work = Color(0xFF3E8FC9);
 
   static const Color like = Color(0xFFE0466E);
   static const Color success = Color(0xFF4CD787);
+
+  // Light, lavender-tinted "post card" palette matching the Anonity
+  // feed-card mockup. Used specifically by PostCard so cards read as
+  // light chips on the dark app background, independent of app theme.
+  static const Color postCard = Color(0xFFF4F1FC);
+  static const Color postCardBorder = Color(0xFFE7E1F7);
+  static const Color postCardTextPrimary = Color(0xFF221E2E);
+  static const Color postCardTextSecondary = Color(0xFF8B85A0);
+  static const Color tagChipBg = Color(0xFFE9E2FB);
+  static const Color tagChipText = Color(0xFF5B4B8A);
 
   static const LinearGradient primaryGradient = LinearGradient(
     colors: [Color(0xFF8B6BFF), Color(0xFF6A45E8)],
@@ -121,40 +145,49 @@ class AppTheme {
   static ThemeData _buildLight() {
     final base = ThemeData.light(useMaterial3: true);
     final textTheme = GoogleFonts.interTextTheme(base.textTheme).apply(
-      bodyColor: AppColors.textPrimary,
-      displayColor: AppColors.textPrimary,
+      bodyColor: AppColors.lightTextPrimary,
+      displayColor: AppColors.lightTextPrimary,
     );
 
     return base.copyWith(
-      scaffoldBackgroundColor: const Color(0xFF0D0C12),
+      scaffoldBackgroundColor: AppColors.lightBackground,
       primaryColor: AppColors.primary,
       textTheme: textTheme,
       colorScheme: base.colorScheme.copyWith(
+        brightness: Brightness.light,
         primary: AppColors.primary,
         secondary: AppColors.primaryGlow,
-        surface: const Color(0xFF1A1824),
+        surface: AppColors.lightSurface,
+        onSurface: AppColors.lightTextPrimary,
+        onSurfaceVariant: AppColors.lightTextSecondary,
+        surfaceContainerHigh: AppColors.lightSurfaceContainerHigh,
+        surfaceContainerHighest: AppColors.lightSurfaceContainerHighest,
+        outline: AppColors.lightBorder,
+        outlineVariant: AppColors.lightOutlineVariant,
+        shadow: Colors.black,
         error: AppColors.spicy,
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF0D0C12),
+        backgroundColor: AppColors.lightBackground,
         elevation: 0,
         centerTitle: false,
         surfaceTintColor: Colors.transparent,
-        iconTheme: IconThemeData(color: AppColors.textPrimary),
+        iconTheme: IconThemeData(color: AppColors.lightTextPrimary),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFF1A1824),
-        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 14),
+        fillColor: AppColors.lightSurfaceElevated,
+        hintStyle:
+            const TextStyle(color: AppColors.lightTextMuted, fontSize: 14),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: const BorderSide(color: AppColors.lightBorder),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: const BorderSide(color: AppColors.lightBorder),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -174,22 +207,22 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.textPrimary,
+          foregroundColor: AppColors.lightTextPrimary,
           minimumSize: const Size.fromHeight(52),
-          side: const BorderSide(color: AppColors.border),
+          side: const BorderSide(color: AppColors.lightBorder),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(foregroundColor: AppColors.primaryGlow),
+        style: TextButton.styleFrom(foregroundColor: AppColors.primaryDim),
       ),
       dividerTheme:
-          const DividerThemeData(color: AppColors.border, thickness: 1),
+          const DividerThemeData(color: AppColors.lightBorder, thickness: 1),
       snackBarTheme: const SnackBarThemeData(
-        backgroundColor: AppColors.surfaceElevated,
-        contentTextStyle: TextStyle(color: AppColors.textPrimary),
+        backgroundColor: AppColors.lightSurfaceElevated,
+        contentTextStyle: TextStyle(color: AppColors.lightTextPrimary),
         behavior: SnackBarBehavior.floating,
       ),
     );

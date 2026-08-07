@@ -38,7 +38,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       await PostService.createPost(
         content: content,
         isAnonymous: _anonymous,
-        section: _section,
+        tags: _section == null ? const [] : [_section!],
       );
       if (!mounted) return;
       Navigator.of(context).pop();
