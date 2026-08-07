@@ -7,7 +7,7 @@ import '../widgets/skeleton.dart';
 import '../widgets/app_feedback.dart';
 import '../services/post_service.dart';
 import 'create_post_screen.dart';
-import 'settings_screen.dart';
+// import 'settings_screen.dart';
 
 class HomeFeedScreen extends StatefulWidget {
   final bool embedded;
