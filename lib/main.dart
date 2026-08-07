@@ -7,6 +7,7 @@ import 'config/supabase_config.dart';
 import 'theme/app_theme.dart';
 import 'theme/theme_manager.dart';
 import 'screens/splash_screen.dart';
+import 'widgets/resume_splash_overlay.dart';
 import 'screens/root_shell.dart';
 import 'services/auth_service.dart';
 
@@ -176,7 +177,7 @@ class AnonityApp extends StatelessWidget {
               AppThemeExtras(accentGradient: themeController.accentGradient),
             ],
           ),
-          home: const AuthGate(),
+          home: const AppResumeSplashOverlay(child: AuthGate()),
           // Builder wraps the whole MaterialApp so any navigation that
           // throws gets caught and turned into the same friendly
           // screen, rather than Flutter's black "Navigator observer
