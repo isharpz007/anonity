@@ -204,6 +204,13 @@ class AuthGate extends StatelessWidget {
       initialData: null,
       builder: (context, snapshot) {
         final loggedIn = AuthService.isLoggedIn;
+        // Keep the theme controller's logged-in flag in sync so it knows
+        // whether to apply the permanent pre-auth theme or the user's
+        // saved dark/light/gradient choice. Scheduled after this frame
+        // since it's not safe to call notifyListeners() during build.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ThemeControllerProvider.of(context).setLoggedIn(loggedIn);
+        });
         return loggedIn ? const RootShell() : const SplashScreen();
       },
     );

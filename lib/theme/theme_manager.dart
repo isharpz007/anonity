@@ -112,6 +112,33 @@ class ThemeController extends ChangeNotifier {
   AppBrightnessChoice brightnessChoice = AppBrightnessChoice.system;
   AppThemeChoice themeChoice = AppThemeChoice.defaultBrand;
 
+  // The fixed look used for the logged-out zone (splash, login, create
+  // account). Never persisted, never user-editable — always this exact
+  // combination regardless of what the user picks once they're signed in.
+  static const AppBrightnessChoice _permanentBrightness =
+      AppBrightnessChoice.dark;
+  static const AppThemeChoice _permanentThemeChoice =
+      AppThemeChoice.defaultBrand;
+
+  // Set by AuthGate whenever Supabase's auth state changes. Drives which
+  // theme (permanent vs the user's saved choice) is actually applied.
+  bool _loggedIn = false;
+
+  void setLoggedIn(bool loggedIn) {
+    if (_loggedIn == loggedIn) return;
+    _loggedIn = loggedIn;
+    notifyListeners();
+  }
+
+  // Everything that renders theme (themeMode, resolveColorScheme,
+  // accentGradient) reads through these instead of the raw fields, so the
+  // logged-out zone always gets the permanent theme no matter what's
+  // saved in prefs, and logging in immediately restores the user's pick.
+  AppBrightnessChoice get _effectiveBrightnessChoice =>
+      _loggedIn ? brightnessChoice : _permanentBrightness;
+  AppThemeChoice get _effectiveThemeChoice =>
+      _loggedIn ? themeChoice : _permanentThemeChoice;
+
   // FIX: was `const [...]`, which produces an immutable list literal.
   // Assigning a const list to a non-final field does NOT make it mutable —
   // any later `customGradientColors[i] = ...` throws
@@ -125,7 +152,7 @@ class ThemeController extends ChangeNotifier {
 
   bool get isSystemMode => brightnessChoice == AppBrightnessChoice.system;
   ThemeMode get themeMode {
-    switch (brightnessChoice) {
+    switch (_effectiveBrightnessChoice) {
       case AppBrightnessChoice.light:
         return ThemeMode.light;
       case AppBrightnessChoice.dark:
@@ -214,7 +241,7 @@ class ThemeController extends ChangeNotifier {
   }
 
   LinearGradient get accentGradient {
-    if (themeChoice == AppThemeChoice.customGradient) {
+    if (_effectiveThemeChoice == AppThemeChoice.customGradient) {
       return LinearGradient(
         colors: List<Color>.from(customGradientColors),
         begin: Alignment.topLeft,
@@ -231,7 +258,8 @@ class ThemeController extends ChangeNotifier {
   ) {
     final dynamicScheme =
         brightness == Brightness.light ? dynamicLight : dynamicDark;
-    if (themeChoice == AppThemeChoice.systemColors && dynamicScheme != null) {
+    if (_effectiveThemeChoice == AppThemeChoice.systemColors &&
+        dynamicScheme != null) {
       return dynamicScheme;
     }
 
