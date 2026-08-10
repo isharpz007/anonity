@@ -226,7 +226,8 @@ class _AnonAvatar extends StatelessWidget {
     Color(0xFFFFE9A8),
     Color(0xFFD8D2FF),
   ];
-  static const _faces = ['🐻', '🦊', '🐼', '🦉', '🐸', '🐨', '🐵', '🐰'];
+  static const _faces = ['🐻', '🦊', '🐼', '🦉', '🐸', '🐨', '🐵', '🐰', '🐯', '🦁',
+                         '🐮', '🐷', '🐸', '🐵', '🐔', '🐧' ];
 
   @override
   Widget build(BuildContext context) {
