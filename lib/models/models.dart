@@ -109,3 +109,54 @@ class AppPost {
     return '${diff.inDays} day${diff.inDays == 1 ? '' : 's'} ago';
   }
 }
+
+class AppComment {
+  final String id;
+  final String authorId;
+  final String? authorUsername; // joined from profiles, null if not fetched
+  final bool isAnonymous;
+  final String content;
+  final DateTime createdAt;
+
+  const AppComment({
+    required this.id,
+    required this.authorId,
+    required this.isAnonymous,
+    required this.content,
+    required this.createdAt,
+    this.authorUsername,
+  });
+
+  factory AppComment.fromMap(Map<String, dynamic> map) {
+    // profiles may come back as a nested map when the query joins it.
+    final profile = map['profiles'];
+    // DateTime.parse is the most likely thrower (null/missing/garbage
+    // created_at). Fall back to "now" so the row still renders
+    // instead of nuking the whole list.
+    final createdAtRaw = map['created_at'];
+    final createdAt = createdAtRaw is String
+        ? DateTime.tryParse(createdAtRaw) ?? DateTime.now().toUtc()
+        : DateTime.now().toUtc();
+
+    return AppComment(
+      id: (map['id'] as String?) ?? '',
+      authorId: (map['author_id'] as String?) ?? '',
+      authorUsername: profile is Map ? profile['username'] as String? : null,
+      isAnonymous: map['is_anonymous'] as bool? ?? true,
+      content: map['content'] as String? ?? '',
+      createdAt: createdAt,
+    );
+  }
+
+  String get timeAgo {
+    final diff = DateTime.now().toUtc().difference(createdAt.toUtc());
+    if (diff.inMinutes < 1) return 'just now';
+    if (diff.inMinutes < 60) {
+      return '${diff.inMinutes} minute${diff.inMinutes == 1 ? '' : 's'} ago';
+    }
+    if (diff.inHours < 24) {
+      return '${diff.inHours} hour${diff.inHours == 1 ? '' : 's'} ago';
+    }
+    return '${diff.inDays} day${diff.inDays == 1 ? '' : 's'} ago';
+  }
+}

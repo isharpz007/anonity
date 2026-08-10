@@ -1,13 +1,17 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../models/models.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/post_service.dart';
 import '../widgets/app_feedback.dart';
+import 'comment_sheet.dart';
 
-/// Post card matching the Anonity feed mockup: a light lavender card
-/// with tag chips, an illustrated anon avatar, an expandable content
-/// block, and a two-stat reaction/views row.
+// How many characters of content to show before truncating with a
+// "...more" toggle. A character count (rather than measuring actual
+// line overflow) keeps this cheap and predictable across card widths.
+const int _kTruncateAt = 150;
+
 class PostCard extends StatefulWidget {
   final AppPost post;
   const PostCard({super.key, required this.post});
@@ -19,13 +23,24 @@ class PostCard extends StatefulWidget {
 class _PostCardState extends State<PostCard> {
   late bool liked = widget.post.likedByMe;
   late int likeCount = widget.post.likesCount;
+  late int commentCount = widget.post.commentsCount;
   bool _busy = false;
   bool _expanded = false;
 
-  // A post is only truncated if it's long enough that 3 lines would
-  // meaningfully cut it off. This is a length heuristic rather than an
-  // exact line-measurement, which keeps the card lightweight.
-  bool get _isLong => widget.post.content.length > 150;
+  // Reused across rebuilds so we don't create a fresh recognizer on
+  // every frame. Recognizers are cheap but they accumulate listener
+  // state if you keep re-binding .onTap to new closures without
+  // disposing the old one — so the same instance lives for the
+  // lifetime of this card.
+  final TapGestureRecognizer _moreTap = TapGestureRecognizer();
+  final TapGestureRecognizer _lessTap = TapGestureRecognizer();
+
+  @override
+  void dispose() {
+    _moreTap.dispose();
+    _lessTap.dispose();
+    super.dispose();
+  }
 
   Future<void> _toggleLike() async {
     if (_busy) return;
@@ -48,10 +63,63 @@ class _PostCardState extends State<PostCard> {
         liked = wasLiked;
         likeCount += wasLiked ? 1 : -1;
       });
-      showToast(context, 'Could not update reaction. Try again.');
+      showToast(context, 'Could not update. Try again.');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  void _openComments() {
+    showCommentSheet(
+      context,
+      widget.post,
+      onCommentPosted: (newCount) {
+        if (mounted) setState(() => commentCount = newCount);
+      },
+    );
+  }
+
+  Widget _buildContent(String content) {
+    const textStyle = TextStyle(
+      color: AppColors.postCardTextPrimary,
+      fontSize: 14.5,
+      height: 1.4,
+    );
+    const linkStyle = TextStyle(
+      fontWeight: FontWeight.w600,
+      color: AppColors.primaryDim,
+    );
+    final needsTruncation = content.length > _kTruncateAt;
+
+    if (!needsTruncation || _expanded) {
+      // Expanded view: whole content plus an inline "less" link that
+      // collapses back. Re-bind the recognizer on every rebuild so
+      // we always close over the current State (avoid stale `this`
+      // captures after the widget is reparented).
+      _lessTap.onTap = () => setState(() => _expanded = false);
+      return RichText(
+        text: TextSpan(
+          style: textStyle,
+          children: [
+            TextSpan(text: content),
+            if (needsTruncation)
+              TextSpan(text: '  less', style: linkStyle, recognizer: _lessTap),
+          ],
+        ),
+      );
+    }
+
+    _moreTap.onTap = () => setState(() => _expanded = true);
+    final truncated = content.substring(0, _kTruncateAt).trimRight();
+    return RichText(
+      text: TextSpan(
+        style: textStyle,
+        children: [
+          TextSpan(text: '$truncated… '),
+          TextSpan(text: 'more', style: linkStyle, recognizer: _moreTap),
+        ],
+      ),
+    );
   }
 
   @override
@@ -68,6 +136,8 @@ class _PostCardState extends State<PostCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Tag chips (e.g. 'Emotions 🙈', 'Sex 🔥') instead of one
+          // section header — shows the full multi-tag set on the post.
           if (post.tags.isNotEmpty) ...[
             Wrap(
               spacing: 8,
@@ -87,7 +157,7 @@ class _PostCardState extends State<PostCard> {
                   children: [
                     Text(
                       post.isAnonymous
-                          ? 'Anonymous ${_anonNumber(post.authorId)}'
+                          ? 'Anonymous ${100 + (post.authorId.isEmpty ? 0 : post.authorId.hashCode.abs() % 900)}'
                           : (post.authorUsername ??
                               post.handle.replaceFirst('@', '')),
                       style: const TextStyle(
@@ -110,7 +180,7 @@ class _PostCardState extends State<PostCard> {
             ],
           ),
           const SizedBox(height: 12),
-          _buildContent(),
+          _buildContent(post.content),
           const SizedBox(height: 14),
           Row(
             children: [
@@ -124,6 +194,12 @@ class _PostCardState extends State<PostCard> {
               ),
               const SizedBox(width: 20),
               _ReactionStat(
+                icon: Icons.mode_comment_outlined,
+                count: commentCount,
+                onTap: _openComments,
+              ),
+              const SizedBox(width: 20),
+              _ReactionStat(
                 icon: Icons.remove_red_eye_outlined,
                 count: post.viewsCount,
               ),
@@ -133,80 +209,7 @@ class _PostCardState extends State<PostCard> {
       ),
     );
   }
-
-  Widget _buildContent() {
-    final content = widget.post.content;
-    const style = TextStyle(
-      color: AppColors.postCardTextPrimary,
-      fontSize: 14.5,
-      height: 1.4,
-    );
-
-    if (_expanded || !_isLong) {
-      return GestureDetector(
-        onTap: _isLong ? () => setState(() => _expanded = false) : null,
-        child: RichText(
-          text: TextSpan(
-            style: style,
-            children: [
-              TextSpan(text: content),
-              if (_isLong)
-                const TextSpan(
-                  text: '  less',
-                  style: TextStyle(
-                    color: AppColors.primaryDim,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Collapsed: clip to 3 lines and overlay a tappable "...more" in
-    // the bottom-right corner, faded in from the card background so
-    // it reads as part of the text rather than a separate control.
-    return GestureDetector(
-      onTap: () => setState(() => _expanded = true),
-      child: Stack(
-        children: [
-          Text(
-            content,
-            style: style,
-            maxLines: 3,
-            overflow: TextOverflow.clip,
-          ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.only(left: 36),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0x00F4F1FC), AppColors.postCard],
-                  stops: [0, 0.35],
-                ),
-              ),
-              child: const Text(
-                '...more',
-                style: TextStyle(
-                  color: AppColors.primaryDim,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14.5,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
-
-/// Deterministic 3-digit-ish number so the same anonymous author
-/// always shows the same "Anonymous ###" label within a session.
-int _anonNumber(String seed) => 100 + (seed.hashCode.abs() % 900);
 
 /// Small illustrated-style avatar: a soft pastel circle with a face
 /// emoji, chosen deterministically from the author id so the same
@@ -235,7 +238,17 @@ class _AnonAvatar extends StatelessWidget {
       height: 36,
       alignment: Alignment.center,
       decoration: BoxDecoration(color: bg, shape: BoxShape.circle),
-      child: Text(face, style: const TextStyle(fontSize: 18)),
+      // Pin fontFamily to NotoColorEmoji so the emoji glyph always
+      // uses the bundled color-emoji font, regardless of the parent
+      // text theme (which uses GoogleFonts.inter — Inter has no
+      // glyph for these).
+      child: Text(
+        face,
+        style: const TextStyle(
+          fontSize: 18,
+          fontFamily: 'NotoColorEmoji',
+        ),
+      ),
     );
   }
 }

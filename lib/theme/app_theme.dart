@@ -70,6 +70,11 @@ class AppTheme {
     final textTheme = GoogleFonts.interTextTheme(base.textTheme).apply(
       bodyColor: AppColors.textPrimary,
       displayColor: AppColors.textPrimary,
+      // Make sure emoji glyphs (avatars, ellipsis, etc.) render even
+      // when Inter doesn't cover them — falls back to the bundled
+      // NotoColorEmoji font and silences the "missing characters"
+      // warning printed at startup.
+      fontFamilyFallback: const ['NotoColorEmoji'],
     );
 
     return base.copyWith(
@@ -147,6 +152,8 @@ class AppTheme {
     final textTheme = GoogleFonts.interTextTheme(base.textTheme).apply(
       bodyColor: AppColors.lightTextPrimary,
       displayColor: AppColors.lightTextPrimary,
+      // Same emoji-fallback as the dark theme — see _buildDark.
+      fontFamilyFallback: const ['NotoColorEmoji'],
     );
 
     return base.copyWith(
