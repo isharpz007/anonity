@@ -32,7 +32,6 @@ class AppPost {
   final List<String> tags; // full tag set for display, e.g. ['Emotions','Sex']
   final String content;
   final int commentsCount;
-  final int repostsCount;
   final int likesCount;
   final int viewsCount;
   final DateTime createdAt;
@@ -46,7 +45,6 @@ class AppPost {
     required this.tags,
     required this.content,
     required this.commentsCount,
-    required this.repostsCount,
     required this.likesCount,
     required this.createdAt,
     this.viewsCount = 0,
@@ -87,7 +85,6 @@ class AppPost {
       tags: tags,
       content: map['content'] as String? ?? '',
       commentsCount: (map['comments_count'] as num?)?.toInt() ?? 0,
-      repostsCount: (map['reposts_count'] as num?)?.toInt() ?? 0,
       likesCount: (map['likes_count'] as num?)?.toInt() ?? 0,
       viewsCount: (map['views_count'] as num?)?.toInt() ?? 0,
       createdAt: createdAt,
@@ -111,16 +108,12 @@ class AppPost {
 }
 
 class AppComment {
-  final String id;
-  final String authorId;
   final String? authorUsername; // joined from profiles, null if not fetched
   final bool isAnonymous;
   final String content;
   final DateTime createdAt;
 
   const AppComment({
-    required this.id,
-    required this.authorId,
     required this.isAnonymous,
     required this.content,
     required this.createdAt,
@@ -139,8 +132,6 @@ class AppComment {
         : DateTime.now().toUtc();
 
     return AppComment(
-      id: (map['id'] as String?) ?? '',
-      authorId: (map['author_id'] as String?) ?? '',
       authorUsername: profile is Map ? profile['username'] as String? : null,
       isAnonymous: map['is_anonymous'] as bool? ?? true,
       content: map['content'] as String? ?? '',
