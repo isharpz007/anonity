@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
 import '../widgets/anonity_logo.dart';
 import '../widgets/app_feedback.dart';
@@ -39,16 +38,6 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await AuthService.signIn(emailOrUsername: email, password: password);
       if (!mounted) return;
-      // Step 1 sanity check: confirm a real Supabase session was created
-      // before any moderation / RLS work proceeds. The JWT is what RLS
-      // policies actually authorize against, so verifying it exists here
-      // is the single most useful thing to log.
-      final user = Supabase.instance.client.auth.currentUser;
-      final session = Supabase.instance.client.auth.currentSession;
-      // ignore: avoid_print
-      print('User ID: ${user?.id}');
-      // ignore: avoid_print
-      print('JWT: ${session?.accessToken}');
       // AuthGate (in main.dart) listens for the auth state change and
       // swaps to RootShell automatically — just pop back to it.
       Navigator.of(context).popUntil((route) => route.isFirst);

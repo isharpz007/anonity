@@ -2,3 +2,341 @@ One thing to flag: the JWT is a long-lived bearer token. It's fine to print it i
   check, but don't leave print calls around it in a release build — strip them (or guard them with kDebugMode) before
   shipping. The // ignore: avoid_print comments I added are placeholders so the analyzer doesn't complain now; you'll
   want to remove the print lines (not just the ignores) before any TestFlight / Play release.2
+
+
+
+
+  ////2
+   I found your problem. Your schema defines a posts_insert_self
+  policy at line 241, but the policy has a subtle requirement
+  that isn't being met by the probe:
+
+  create policy "posts_insert_self"
+    on public.posts for insert
+    with check (auth.uid() = author_id);
+
+  For that policy to actually allow the insert, two conditions
+  must both be true:
+
+  1. auth.uid() returns a non-null value (it does — your JWT's
+  sub is fb3b94e3-...)
+  2. The author_id you supply must be a valid foreign key to
+  public.profiles
+
+  Your posts table has this FK at line 62:
+  author_id uuid not null references public.profiles(id) on
+  delete cascade
+
+  Now look at what your handle_new_user trigger does (lines
+  25–49). It generates a username like daniel_abc123 from the
+  email + a hash of the user id. So when danielodi7575@gmail.com
+  signed up, the trigger created a profile with username =
+  'danielodi_a2d4ab', and the id column was set to the auth
+  user's id (fb3b94e3-...). That profile should exist.
+
+  So auth.uid() = author_id should be true. Unless your probe is
+  failing for a different reason than the policy. Let me check
+  whether the policy is even loaded in your Supabase project —
+  your schema.sql has drop policy if exists + create policy, so
+  it's idempotent. If the schema was only ever partially run,
+  the posts_insert_self policy might not exist on the live
+  database. Let me give you the diagnostic to find out for sure.
+
+● Here's the situation and the fix:
+
+  The diagnosis:
+
+  Your schema.sql defines posts_insert_self at line 241 with
+  with check (auth.uid() = author_id). The probe is failing on
+  that exact line — the policy is evaluating, it's just
+  rejecting. The most likely cause is one of these:
+
+  1. The schema was run before that section — enable row level
+  security ran (line 211) but the create policy statements below
+  it weren't executed. In that case, RLS is on with no INSERT
+  policy = deny everything. The error message ("new row violates
+  row-level security policy") is the same either way, but the
+  cause is different.
+  2. The policy exists but author_id doesn't match a real
+  profiles row — that would surface as a foreign key violation,
+  not an RLS violation, so we can rule this out (your error
+  specifically says "row-level security policy").
+  3. There's a typo or the live DB has a different version of
+  the schema than schema.sql on disk.
+
+  The fix is safe and idempotent. Run this in Supabase → SQL
+  Editor → New query → Run:
+
+  -- Diagnostic: list every policy currently on the 'posts'
+  table.
+  -- This tells us, in one shot, whether 'posts_insert_self'
+  actually
+  -- exists on the live DB or is missing.
+  select
+    polname              as policy_name,
+    polcmd               as command,        -- r=select,
+  a=insert, w=update, d=delete
+    pg_get_expr(polqual, polrelid)         as using_expression,
+    pg_get_expr(polwithcheck, polrelid)     as
+  with_check_expression
+  from pg_policy
+  where polrelid = 'public.posts'::regclass
+  order by polname;
+
+  What you'll see:
+
+  policy_name column: 4 rows: posts_select, posts_insert_self,
+  posts_update_self, posts_delete_self
+  What it means: Schema ran fully. The insert policy exists, but
+
+  it's blocking for some other reason — paste me the
+  with_check_expression column.
+  ────────────────────────────────────────
+  policy_name column: Fewer than 4 rows, no posts_insert_self
+  What it means: The schema ran partially. Run the fix below.
+  ────────────────────────────────────────
+  policy_name column: 0 rows
+  What it means: RLS got enabled but no policies ever ran. Run
+  the full schema (or at minimum the policy block).
+
+  If posts_insert_self is missing, run this to add it back (and
+  also belt-and-braces the other three posts policies in case
+  any of them are missing):
+
+  -- Idempotent: drop-then-create so re-running is safe.
+  drop policy if exists "posts_insert_self" on public.posts;
+  create policy "posts_insert_self"
+    on public.posts for insert
+    with check (auth.uid() = author_id);
+
+  drop policy if exists "posts_update_self" on public.posts;
+  create policy "posts_update_self"
+    on public.posts for update
+    using (auth.uid() = author_id)
+    with check (auth.uid() = author_id);
+
+  drop policy if exists "posts_delete_self" on public.posts;
+  create policy "posts_delete_self"
+    on public.posts for delete
+    using (auth.uid() = author_id);
+
+  Important: because RLS is on, the create policy itself runs as
+  the postgres superuser and bypasses RLS — so it'll succeed
+  even with no logged-in user. No need to wrap it in set local
+  role or anything.
+
+  Also, while you're in there, run this quick sanity check to
+  confirm the profile row actually exists for the test user —
+  the FK needs to resolve for the row to be inserted, even if
+  the policy allowed it:
+
+  -- Should return exactly one row for
+  fb3b94e3-a2d4-4c12-ab46-f9ce66299528
+  select id, username, created_at
+  from public.profiles
+  where id = 'fb3b94e3-a2d4-4c12-ab46-f9ce66299528';
+
+  If this returns 0 rows, the handle_new_user trigger didn't
+  fire when the user signed up (which can happen if the trigger
+  was added after the user already existed). In that case, the
+  probe will keep failing on the FK, not the policy. The fix is:
+
+  -- Backfill the profile so the foreign key resolves.
+  insert into public.profiles (id, username)
+  values (
+    'fb3b94e3-a2d4-4c12-ab46-f9ce66299528',
+    'odi007_' ||
+  substr(replace('fb3b94e3-a2d4-4c12-ab46-f9ce66299528', '-',
+  ''), 1, 6)
+  )
+  on conflict (id) do nothing;
+
+  Then re-run the probe by logging out and back in. The console
+  should print:
+
+  RLS probe response: [{id: <some-uuid>, content: Testing my
+  first protected post, author_id:
+  fb3b94e3-a2d4-4c12-ab46-f9ce66299528, is_anonymous: true,
+  tags: [], comments_count: 0, likes_count: 0, reposts_count: 0,
+  views_count: 0, created_at: 2026-08-11T..., section: null}]
+
+  The presence of the id and created_at fields proves .select()
+  worked AND that the row actually made it into the table.
+
+  Paste me the output of the diagnostic query (select polname,
+  polcmd ... from pg_policy where polrelid =
+  'public.posts'::regclass) and I'll tell you exactly which of
+  these three cases you're in. If the policies look right, paste
+  me the result of the select id, username, created_at from
+  public.profiles where id = ... query too.
+
+● Reminder on cleanup: the RLS probe block in login_screen.dart
+  is still there. Once you've confirmed the fix works, delete
+  that whole block (lines ~52–68) and the two print lines above
+  it (the User ID / JWT prints) — or at least wrap them in if
+  (kDebugMode). The probe is fine to keep if you want a
+  permanent health check, but it'll insert a row into your posts
+  table on every login, which will quickly clutter your feed.
+////2
+
+
+//3
+ That's just the same RLS violation, restated as JSON — looks
+  like you didn't paste the diagnostic SQL yet, you re-ran the
+  probe (or the app did, on next login) and it's still failing
+  because the policies on the database haven't changed.
+
+  I can't run SQL on your Supabase project from here — only you
+  can, by pasting into Supabase Dashboard → SQL Editor → New
+  query → Run. Once you've done that, paste me back what the
+  Results panel showed for the diagnostic queries (steps 1, 2,
+  and 5 from the block I gave you), and we'll know exactly which
+  case we're in.
+
+  If it's easier, you can also just run the fix portion only
+  (steps 3 and 4) without the diagnostics — those are idempotent
+  and will work whether or not the policies were already there.
+  The minimum-paste version is:
+
+  drop policy if exists "posts_insert_self" on public.posts;
+  create policy "posts_insert_self"
+    on public.posts for insert
+    with check (auth.uid() = author_id);
+
+  insert into public.profiles (id, username)
+  values (
+    'fb3b94e3-a2d4-4c12-ab46-f9ce66299528',
+    'danielodi_' ||
+  substr(replace('fb3b94e3-a2d4-4c12-ab46-f9ce66299528', '-',
+  ''), 1, 6)
+  )
+  on conflict (id) do nothing;
+
+  Run that, then log out and back in. If the probe still 403s,
+  paste me the full JSON error (or any new error) and we'll keep
+  diagnosing.
+
+  What I need from you to unblock this:
+
+  - A screenshot or text dump of what the SQL Editor Results
+  panel showed after you ran the SQL. (If you haven't run the
+  SQL yet, that's the next step — the fix doesn't happen on its
+  own.)
+  - Which Supabase project you're in — confirm the URL bar shows
+  wzfgyrorszweotmnvduv.supabase.co, in case you have multiple
+  projects and ran it on the wrong one.
+
+✻ Crunched for 10s
+
+❯ haven't run the
+    SQL yet
+
+● No worries — that's the missing piece. Nothing in the app
+  changes until that SQL runs against your Supabase project. The
+  Flutter probe is doing its job correctly; it's just hitting
+  the same RLS wall because the database side hasn't been told
+  to allow the insert.
+
+  Here's the minimum to unblock you — paste this into Supabase
+  Dashboard → SQL Editor → New query → Run:
+
+  drop policy if exists "posts_insert_self" on public.posts;
+  create policy "posts_insert_self"
+    on public.posts for insert
+    with check (auth.uid() = author_id);
+
+  insert into public.profiles (id, username)
+  values (
+    'fb3b94e3-a2d4-4c12-ab46-f9ce66299528',
+    'danielodi_' ||
+  substr(replace('fb3b94e3-a2d4-4c12-ab46-f9ce66299528', '-',
+  ''), 1, 6)
+  )
+  on conflict (id) do nothing;
+
+  After you click Run:
+
+  1. The Results panel should show "Success. No rows returned" —
+  that's normal for drop policy and insert on conflict do
+  nothing.
+  2. Go back to the Flutter app, log out, log back in.
+  3. The console should now print RLS probe response: [{id: ...,
+  content: Testing my first protected post, author_id:
+  fb3b94e3-..., ...}] instead of RLS probe failed: ... 42501.
+
+  If you want to see why this fixes it, run the diagnostic first
+  instead (the longer block I gave you earlier). That'll show
+  you in the Results panel exactly which policies exist on the
+  posts table right now and whether the profile row is there.
+  Then run the fix.
+
+  One more thing to double-check before running: confirm you're
+  in the right Supabase project. The URL the JWT is being signed
+  for is wzfgyrorszweotmnvduv.supabase.co — that should match
+  the project name in the top-left of your Supabase dashboard.
+  If you have multiple projects, it's easy to be in the wrong
+  one.
+
+  Once you run the SQL, paste me back what you see (or just say
+  "it worked" if the probe response shows the inserted row) and
+  I'll clean up the diagnostic prints from the login screen.
+//3
+
+//4
+ Summary of where you are:
+
+  - ✅ Step 1 — Supabase Auth login works (verified)
+  - ✅ Step 2 — Protected insert through RLS works (verified)
+  - ✅ Diagnostic prints cleaned out of login_screen.dart and
+  create_account_screen.dart
+  - ✅ posts_insert_self policy confirmed in place on the live
+  database
+  - ✅ Profile row confirmed for
+  fb3b94e3-a2d4-4c12-ab46-f9ce66299528
+
+  One last thing to clean up on the database side: your posts
+  table now contains that test row ("Testing my first protected
+  post"). It's harmless but it will show up in your feed. To
+  delete it:
+
+  delete from public.posts
+  where content = 'Testing my first protected post'
+    and author_id = 'fb3b94e3-a2d4-4c12-ab46-f9ce66299528';
+
+  The author_id filter is the RLS-aware way to do it — your
+  session is what authorizes this delete, and the
+  posts_delete_self policy (auth.uid() = author_id) lets you
+  remove your own rows. Don't run it as the postgres role from
+  the SQL editor, though — that bypasses RLS and would
+  technically violate the policy, just fine in practice.
+
+  What's next: you can now move on to whatever Step 3 is
+  (moderation, comments, realtime subscriptions, etc.) knowing
+  the foundation is solid. If you want a one-line "is auth + RLS
+  healthy?" check you can keep around permanently in dev, the
+  cleanest approach is to wrap the probe in if (kDebugMode)
+  rather than deleting it — happy to wire that up if you want
+  it.
+  //4
+
+  //5
+   1. The test row cleanup. Your recap said the test post is still in the table. The cleanest RLS-respecting way to
+  remove it is from inside Flutter while signed in:
+
+  final supabase = Supabase.instance.client;
+  final user = supabase.auth.currentUser;
+
+  await supabase.from('posts').delete().match({
+    'content': 'Testing my first protected post',
+    'author_id': user!.id,
+  });
+
+  That goes through posts_delete_self and auth.uid() = author_id actually fires. Want me to write that as a one-off
+  script you can run with dart run, or skip it for now?
+
+ //5
+
+
+
+SUPABASE_URL="https://wzfgyrorszweotmnvduv.supabase.co"
+SUPABASE_ANON_KEY="sb_publishable_-J1ECyHgYQJgtwwbG8Q2rA_CWEMq_W8" 
