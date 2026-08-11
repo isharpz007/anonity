@@ -1,0 +1,4 @@
+One thing to flag: the JWT is a long-lived bearer token. It's fine to print it in your own dev console for this sanity
+  check, but don't leave print calls around it in a release build — strip them (or guard them with kDebugMode) before
+  shipping. The // ignore: avoid_print comments I added are placeholders so the analyzer doesn't complain now; you'll
+  want to remove the print lines (not just the ignores) before any TestFlight / Play release.2

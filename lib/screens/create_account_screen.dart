@@ -60,6 +60,15 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     try {
       await AuthService.signUp(email: email, password: password, username: username);
       if (!mounted) return;
+      // Step 1 sanity check: confirm what Supabase returned. If email
+      // confirmation is enabled, both will be null until the user clicks
+      // the link in their inbox — that's expected, not a bug.
+      final user = Supabase.instance.client.auth.currentUser;
+      final session = Supabase.instance.client.auth.currentSession;
+      // ignore: avoid_print
+      print('User ID: ${user?.id}');
+      // ignore: avoid_print
+      print('JWT: ${session?.accessToken}');
       // If email confirmation is enabled in your Supabase project,
       // there won't be a session yet — let the user know to check
       // their inbox instead of assuming they're logged in.
